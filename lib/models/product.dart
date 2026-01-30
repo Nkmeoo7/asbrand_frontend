@@ -64,7 +64,7 @@ class Product {
     );
   }
 
-  // Calculate EMI per month (for display like Snapmint)
+  // Calculate EMI per month (for display like AsBrand)
   double get emiPerMonth => (offerPrice ?? price) / 12;
 
   // Get discount percentage

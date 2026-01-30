@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../core/theme.dart';
 import '../../providers/auth_provider.dart';
 
@@ -58,8 +59,8 @@ class _LoginScreenState extends State<LoginScreen> {
         title: RichText(
           text: const TextSpan(
             children: [
-              TextSpan(text: 'snap', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
-              TextSpan(text: 'mint', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF83C5BE))),
+              TextSpan(text: 'As', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
+              TextSpan(text: 'Brand', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF83C5BE))),
             ],
           ),
         ),
@@ -85,7 +86,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 keyboardType: TextInputType.emailAddress,
                 decoration: const InputDecoration(
                   labelText: 'Email',
-                  prefixIcon: Icon(Icons.email_outlined),
+                  prefixIcon: Icon(Iconsax.sms),
                   filled: true,
                   fillColor: Colors.white,
                 ),
@@ -103,9 +104,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 obscureText: _obscurePassword,
                 decoration: InputDecoration(
                   labelText: 'Password',
-                  prefixIcon: const Icon(Icons.lock_outline),
+                  prefixIcon: const Icon(Iconsax.lock),
                   suffixIcon: IconButton(
-                    icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
+                    icon: Icon(_obscurePassword ? Iconsax.eye_slash : Iconsax.eye),
                     onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                   ),
                   filled: true,
@@ -161,7 +162,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(color: AppTheme.primaryColor, shape: BoxShape.circle),
-                      child: const Icon(Icons.credit_card, color: Colors.white),
+                      child: const Icon(Iconsax.card, color: Colors.white),
                     ),
                     const SizedBox(width: 16),
                     const Expanded(
@@ -248,8 +249,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         title: RichText(
           text: const TextSpan(
             children: [
-              TextSpan(text: 'snap', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
-              TextSpan(text: 'mint', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF83C5BE))),
+              TextSpan(text: 'As', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
+              TextSpan(text: 'Brand', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF83C5BE))),
             ],
           ),
         ),
@@ -272,7 +273,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 controller: _nameController,
                 decoration: const InputDecoration(
                   labelText: 'Full Name',
-                  prefixIcon: Icon(Icons.person_outline),
+                  prefixIcon: Icon(Iconsax.user),
                   filled: true,
                   fillColor: Colors.white,
                 ),
@@ -289,7 +290,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 keyboardType: TextInputType.emailAddress,
                 decoration: const InputDecoration(
                   labelText: 'Email',
-                  prefixIcon: Icon(Icons.email_outlined),
+                  prefixIcon: Icon(Iconsax.sms),
                   filled: true,
                   fillColor: Colors.white,
                 ),
@@ -307,7 +308,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 keyboardType: TextInputType.phone,
                 decoration: const InputDecoration(
                   labelText: 'Phone Number',
-                  prefixIcon: Icon(Icons.phone_outlined),
+                  prefixIcon: Icon(Iconsax.call),
                   hintText: '9876543210',
                   filled: true,
                   fillColor: Colors.white,
@@ -326,9 +327,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 obscureText: _obscurePassword,
                 decoration: InputDecoration(
                   labelText: 'Password',
-                  prefixIcon: const Icon(Icons.lock_outline),
+                  prefixIcon: const Icon(Iconsax.lock),
                   suffixIcon: IconButton(
-                    icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
+                    icon: Icon(_obscurePassword ? Iconsax.eye_slash : Iconsax.eye),
                     onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                   ),
                   filled: true,

@@ -66,8 +66,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         title: RichText(
           text: const TextSpan(
             children: [
-              TextSpan(text: 'snap', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
-              TextSpan(text: 'mint', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF83C5BE))),
+              TextSpan(text: 'As', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
+              TextSpan(text: 'Brand', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF83C5BE))),
             ],
           ),
         ),
@@ -154,7 +154,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
             child: Center(
               child: isActive && _currentStep > step
-                  ? const Icon(Icons.check, color: Colors.white, size: 18)
+                  ? const Icon(Iconsax.tick_circle, color: Colors.white, size: 18)
                   : Text('${step + 1}', style: TextStyle(color: isActive ? Colors.white : Colors.grey)),
             ),
           ),
@@ -551,7 +551,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             const SizedBox(width: 12),
             Text(label, style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
             const Spacer(),
-            if (isSelected) const Icon(Icons.check_circle, color: AppTheme.primaryColor),
+            if (isSelected) const Icon(Iconsax.tick_circle, color: AppTheme.primaryColor),
           ],
         ),
       ),
@@ -601,7 +601,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.check_circle, color: Colors.green, size: 80),
+                  const Icon(Iconsax.tick_circle, color: Colors.green, size: 80),
                   const SizedBox(height: 16),
                   const Text('Order Placed!', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),

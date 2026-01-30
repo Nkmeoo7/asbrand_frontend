@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../core/theme.dart';
 import '../../models/product.dart';
 import '../../providers/cart_provider.dart';
 import '../cart/cart_screen.dart';
 import '../auth/login_screen.dart';
+import '../checkout/checkout_screen.dart';
 import '../../providers/auth_provider.dart';
 
 class ProductDetailScreen extends StatefulWidget {
@@ -30,8 +32,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       appBar: AppBar(
         title: const Text('Product Details'),
         actions: [
-          IconButton(icon: const Icon(Icons.share), onPressed: () {}),
-          IconButton(icon: const Icon(Icons.favorite_border), onPressed: () {}),
+          IconButton(icon: const Icon(Iconsax.share), onPressed: () {}),
+          IconButton(icon: const Icon(Iconsax.heart), onPressed: () {}),
         ],
       ),
       body: SingleChildScrollView(
@@ -259,7 +261,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   ),
                 );
               },
-              icon: const Icon(Icons.shopping_cart_outlined),
+              icon: const Icon(Iconsax.shopping_cart),
               label: const Text('Add to Cart'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppTheme.primaryColor,
@@ -281,9 +283,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 // Add to cart and go to checkout
                 final cart = context.read<CartProvider>();
                 cart.addItem(product, emiMonths: selectedEmiMonths);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen()));
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const CheckoutScreen()));
               },
-              icon: const Icon(Icons.flash_on),
+              icon: const Icon(Iconsax.flash_1),
               label: const Text('Buy Now'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.primaryColor,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  // Primary Colors - Snapmint Teal
+  // Primary Colors - AsBrand Teal
   static const Color primaryColor = Color(0xFF006D77);
   static const Color primaryDark = Color(0xFF004D55);
   static const Color primaryLight = Color(0xFF83C5BE);

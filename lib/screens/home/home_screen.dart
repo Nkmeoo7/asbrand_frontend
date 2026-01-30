@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../core/theme.dart';
 import '../../providers/product_provider.dart';
 import '../../providers/category_provider.dart';
@@ -12,6 +13,7 @@ import '../../models/product.dart';
 import '../product/product_detail_screen.dart';
 import '../auth/login_screen.dart';
 import '../cart/cart_screen.dart';
+import '../checkout/checkout_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -67,7 +69,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.error_outline, size: 60, color: Colors.grey),
+                  const Icon(Iconsax.warning_2, size: 60, color: Colors.grey),
                   const SizedBox(height: 16),
                   Text('Error loading data', style: TextStyle(color: AppTheme.textSecondary)),
                   const SizedBox(height: 8),
@@ -126,8 +128,8 @@ class _HomeScreenState extends State<HomeScreen> {
       title: RichText(
         text: const TextSpan(
           children: [
-            TextSpan(text: 'snap', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
-            TextSpan(text: 'mint', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF83C5BE))),
+            TextSpan(text: 'As', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
+            TextSpan(text: 'Brand', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF83C5BE))),
           ],
         ),
       ),
@@ -137,7 +139,7 @@ class _HomeScreenState extends State<HomeScreen> {
           builder: (context, cart, _) => Stack(
             children: [
               IconButton(
-                icon: const Icon(Icons.shopping_cart_outlined),
+                icon: const Icon(Iconsax.shopping_cart),
                 onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen())),
               ),
               if (cart.itemCount > 0)
@@ -172,7 +174,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     color: Colors.amber,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.credit_card, size: 14, color: Colors.black),
+                  child: const Icon(Iconsax.card, size: 14, color: Colors.black),
                 ),
                 const SizedBox(width: 8),
                 Consumer<AuthProvider>(
@@ -204,7 +206,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.check_circle, size: 60, color: Colors.green),
+              const Icon(Iconsax.tick_circle, size: 60, color: Colors.green),
               const SizedBox(height: 16),
               Text('Welcome, ${auth.user?.name ?? 'User'}!', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
@@ -245,10 +247,10 @@ class _HomeScreenState extends State<HomeScreen> {
         decoration: InputDecoration(
           hintText: 'Search for TV, Mobiles, Headphones & more...',
           hintStyle: const TextStyle(color: AppTheme.textHint, fontSize: 14),
-          prefixIcon: const Icon(Icons.search, color: AppTheme.textHint),
+          prefixIcon: const Icon(Iconsax.search_normal, color: AppTheme.textHint),
           suffixIcon: _searchQuery.isNotEmpty
               ? IconButton(
-                  icon: const Icon(Icons.close),
+                  icon: const Icon(Iconsax.close_circle),
                   onPressed: () {
                     _searchController.clear();
                     setState(() => _searchQuery = '');
@@ -266,21 +268,21 @@ class _HomeScreenState extends State<HomeScreen> {
     // Map category names to icons
     IconData getCategoryIcon(String name) {
       final lower = name.toLowerCase();
-      if (lower.contains('mobile') || lower.contains('phone')) return Icons.phone_android;
-      if (lower.contains('electronic')) return Icons.devices;
-      if (lower.contains('tv') || lower.contains('appliance')) return Icons.tv;
-      if (lower.contains('kitchen') || lower.contains('home')) return Icons.kitchen;
-      if (lower.contains('health') || lower.contains('wellness')) return Icons.health_and_safety;
-      if (lower.contains('fashion') || lower.contains('cloth')) return Icons.checkroom;
-      if (lower.contains('baby') || lower.contains('kid')) return Icons.child_care;
-      if (lower.contains('laptop') || lower.contains('computer')) return Icons.laptop;
-      if (lower.contains('watch')) return Icons.watch;
-      if (lower.contains('headphone') || lower.contains('audio')) return Icons.headphones;
-      return Icons.category;
+      if (lower.contains('mobile') || lower.contains('phone')) return Iconsax.mobile;
+      if (lower.contains('electronic')) return Iconsax.cpu;
+      if (lower.contains('tv') || lower.contains('appliance')) return Iconsax.monitor;
+      if (lower.contains('kitchen') || lower.contains('home')) return Iconsax.home;
+      if (lower.contains('health') || lower.contains('wellness')) return Iconsax.health;
+      if (lower.contains('fashion') || lower.contains('cloth')) return Iconsax.bag_2;
+      if (lower.contains('baby') || lower.contains('kid')) return Iconsax.happyemoji;
+      if (lower.contains('laptop') || lower.contains('computer')) return Iconsax.monitor;
+      if (lower.contains('watch')) return Iconsax.watch;
+      if (lower.contains('headphone') || lower.contains('audio')) return Iconsax.headphone;
+      return Iconsax.category;
     }
 
     final allCategories = [
-      {'id': null, 'name': 'All', 'icon': Icons.apps},
+      {'id': null, 'name': 'All', 'icon': Iconsax.element_4},
       ...categories.map((c) => {'id': c.id, 'name': c.name, 'icon': getCategoryIcon(c.name), 'image': c.image}),
     ];
 
@@ -400,7 +402,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Center(
           child: Column(
             children: [
-              Icon(Icons.inventory_2_outlined, size: 60, color: Colors.grey.shade300),
+              Icon(Iconsax.box, size: 60, color: Colors.grey.shade300),
               const SizedBox(height: 8),
               const Text('No products found', style: TextStyle(color: AppTheme.textSecondary)),
             ],
@@ -451,7 +453,7 @@ class _HomeScreenState extends State<HomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                const Text('snapmint', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white)),
+                const Text('AsBrand', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white)),
                 const SizedBox(height: 8),
                 Text(
                   auth.isAuthenticated ? 'Welcome, ${auth.user?.name ?? 'User'}!' : 'Sign in to unlock credit',
@@ -462,23 +464,23 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           if (!auth.isAuthenticated)
             ListTile(
-              leading: const Icon(Icons.login, color: AppTheme.primaryColor),
+              leading: const Icon(Iconsax.login, color: AppTheme.primaryColor),
               title: const Text('Sign In / Register'),
-              trailing: const Icon(Icons.chevron_right),
+              trailing: const Icon(Iconsax.arrow_right_3),
               onTap: () {
                 Navigator.pop(context);
                 Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
               },
             ),
-          const ListTile(
-            leading: Icon(Icons.favorite_border, color: AppTheme.primaryColor),
-            title: Text('My Wishlist'),
-            trailing: Icon(Icons.chevron_right),
+          ListTile(
+            leading: const Icon(Iconsax.heart, color: AppTheme.primaryColor),
+            title: const Text('My Wishlist'),
+            trailing: const Icon(Iconsax.arrow_right_3),
           ),
           ListTile(
-            leading: const Icon(Icons.shopping_cart_outlined, color: AppTheme.primaryColor),
+            leading: const Icon(Iconsax.shopping_cart, color: AppTheme.primaryColor),
             title: const Text('My Cart'),
-            trailing: const Icon(Icons.chevron_right),
+            trailing: const Icon(Iconsax.arrow_right_3),
             onTap: () {
               Navigator.pop(context);
               Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen()));
@@ -490,28 +492,28 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Text('Categories', style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.textSecondary)),
           ),
           ...categories.map((cat) => ListTile(
-            leading: const Icon(Icons.category, color: AppTheme.primaryColor),
+            leading: const Icon(Iconsax.category, color: AppTheme.primaryColor),
             title: Text(cat.name),
-            trailing: const Icon(Icons.chevron_right),
+            trailing: const Icon(Iconsax.arrow_right_3),
             onTap: () {
               Navigator.pop(context);
               setState(() => _selectedCategoryId = cat.id);
             },
           )),
           const Divider(),
-          const ListTile(
-            leading: Icon(Icons.shopping_bag_outlined, color: AppTheme.primaryColor),
-            title: Text('My Orders'),
-            trailing: Icon(Icons.chevron_right),
+          ListTile(
+            leading: const Icon(Iconsax.bag_2, color: AppTheme.primaryColor),
+            title: const Text('My Orders'),
+            trailing: const Icon(Iconsax.arrow_right_3),
           ),
-          const ListTile(
-            leading: Icon(Icons.phone, color: AppTheme.primaryColor),
-            title: Text('Contact Us'),
-            trailing: Icon(Icons.chevron_right),
+          ListTile(
+            leading: const Icon(Iconsax.call, color: AppTheme.primaryColor),
+            title: const Text('Contact Us'),
+            trailing: const Icon(Iconsax.arrow_right_3),
           ),
           if (auth.isAuthenticated)
             ListTile(
-              leading: const Icon(Icons.logout, color: Colors.red),
+              leading: const Icon(Iconsax.logout, color: Colors.red),
               title: const Text('Logout', style: TextStyle(color: Colors.red)),
               onTap: () async {
                 await auth.logout();
