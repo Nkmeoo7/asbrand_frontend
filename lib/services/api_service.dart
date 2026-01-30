@@ -5,6 +5,12 @@ import '../core/constants.dart';
 import '../models/product.dart';
 import '../models/category.dart';
 import '../models/poster.dart';
+import '../models/order.dart';
+import '../models/brand.dart';
+import '../models/coupon.dart';
+import '../models/emi_plan.dart';
+import '../models/user_kyc.dart';
+import '../models/notification.dart';
 
 class ApiService {
   final _storage = const FlutterSecureStorage();
@@ -53,6 +59,17 @@ class ApiService {
         headers: headers,
         body: jsonEncode(body),
       );
+      return _processResponse(response);
+    } catch (e) {
+      throw Exception('Connection Error: $e');
+    }
+  }
+
+  // Generic DELETE request
+  Future<dynamic> delete(String endpoint) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.delete(Uri.parse(endpoint), headers: headers);
       return _processResponse(response);
     } catch (e) {
       throw Exception('Connection Error: $e');
@@ -112,10 +129,20 @@ class ApiService {
   }
 
   Future<List<SubCategory>> getSubCategories() async {
-    final response = await get('${ApiConstants.baseUrl}/subCategories');
+    final response = await get(ApiConstants.subCategories);
     if (response['success'] == true && response['data'] != null) {
       return (response['data'] as List)
           .map((json) => SubCategory.fromJson(json))
+          .toList();
+    }
+    return [];
+  }
+
+  Future<List<Brand>> getBrands() async {
+    final response = await get(ApiConstants.brands);
+    if (response['success'] == true && response['data'] != null) {
+      return (response['data'] as List)
+          .map((json) => Brand.fromJson(json))
           .toList();
     }
     return [];
@@ -126,7 +153,7 @@ class ApiService {
   // ============================================================
 
   Future<List<Poster>> getPosters() async {
-    final response = await get('${ApiConstants.baseUrl}/posters');
+    final response = await get(ApiConstants.posters);
     if (response['success'] == true && response['data'] != null) {
       return (response['data'] as List)
           .map((json) => Poster.fromJson(json))
@@ -136,22 +163,101 @@ class ApiService {
   }
 
   // ============================================================
-  // AUTH ENDPOINTS
-  // ============================================================
-
-  Future<Map<String, dynamic>> login(String email, String password) async {
-    return await post(ApiConstants.login, {'email': email, 'password': password});
-  }
-
-  Future<Map<String, dynamic>> register(String name, String email, String password) async {
-    return await post(ApiConstants.register, {'name': name, 'email': email, 'password': password});
-  }
-
-  // ============================================================
   // ORDER ENDPOINTS
   // ============================================================
 
   Future<Map<String, dynamic>> createOrder(Map<String, dynamic> orderData) async {
     return await post(ApiConstants.orders, orderData);
+  }
+
+  Future<List<Order>> getMyOrders() async {
+    final response = await get('${ApiConstants.orders}/my-orders');
+    if (response['success'] == true && response['data'] != null) {
+      return (response['data'] as List)
+          .map((json) => Order.fromJson(json))
+          .toList();
+    }
+    return [];
+  }
+
+  Future<Order?> getOrderById(String id) async {
+    final response = await get('${ApiConstants.orders}/$id');
+    if (response['success'] == true && response['data'] != null) {
+      return Order.fromJson(response['data']);
+    }
+    return null;
+  }
+
+  // ============================================================
+  // COUPON ENDPOINTS
+  // ============================================================
+
+  Future<List<Coupon>> getCoupons() async {
+    final response = await get(ApiConstants.coupons);
+    if (response['success'] == true && response['data'] != null) {
+      return (response['data'] as List)
+          .map((json) => Coupon.fromJson(json))
+          .toList();
+    }
+    return [];
+  }
+
+  Future<Map<String, dynamic>> validateCoupon(String code, double cartTotal) async {
+    return await post('${ApiConstants.coupons}/check-coupon', {
+      'couponCode': code,
+      'purchaseAmount': cartTotal,
+    });
+  }
+
+  // ============================================================
+  // EMI ENDPOINTS
+  // ============================================================
+
+  Future<List<EmiPlan>> getEmiPlans() async {
+    final response = await get(ApiConstants.emiPlans);
+    if (response['success'] == true && response['data'] != null) {
+      return (response['data'] as List)
+          .map((json) => EmiPlan.fromJson(json))
+          .toList();
+    }
+    return [];
+  }
+
+  Future<Map<String, dynamic>> applyForEmi(String orderId, String planId, double amount) async {
+    return await post(ApiConstants.emiApply, {
+      'orderId': orderId,
+      'emiPlanId': planId,
+      'principalAmount': amount,
+    });
+  }
+
+  // ============================================================
+  // KYC ENDPOINTS
+  // ============================================================
+
+  Future<UserKyc?> getKycStatus() async {
+    final response = await get(ApiConstants.kycStatus);
+    if (response['success'] == true && response['data'] != null) {
+      return UserKyc.fromJson(response['data']);
+    }
+    return null;
+  }
+
+  Future<Map<String, dynamic>> submitKyc(Map<String, dynamic> kycData) async {
+    return await post(ApiConstants.kycSubmit, kycData);
+  }
+
+  // ============================================================
+  // NOTIFICATION ENDPOINTS
+  // ============================================================
+
+  Future<List<AppNotification>> getNotifications() async {
+    final response = await get(ApiConstants.notifications);
+    if (response['success'] == true && response['data'] != null) {
+      return (response['data'] as List)
+          .map((json) => AppNotification.fromJson(json))
+          .toList();
+    }
+    return [];
   }
 }

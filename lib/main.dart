@@ -4,8 +4,10 @@ import 'core/theme.dart';
 import 'providers/auth_provider.dart';
 import 'providers/product_provider.dart';
 import 'providers/category_provider.dart';
+import 'providers/cart_provider.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/categories/categories_screen.dart';
+import 'screens/cart/cart_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -21,6 +23,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => ProductProvider()),
         ChangeNotifierProvider(create: (_) => CategoryProvider()),
+        ChangeNotifierProvider(create: (_) => CartProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -48,6 +51,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ProductProvider>().fetchProducts();
       context.read<CategoryProvider>().fetchAllData();
+      context.read<AuthProvider>().checkAuth();
     });
   }
 
@@ -58,10 +62,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         index: _currentIndex,
         children: const [
           HomeScreen(),
-          _PlaceholderScreen(title: 'Stores'),
+          _PlaceholderScreen(title: 'Stores', icon: Icons.store),
           CategoriesScreen(),
-          _PlaceholderScreen(title: 'My EMIs'),
-          _PlaceholderScreen(title: 'Wishlist'),
+          _PlaceholderScreen(title: 'My EMIs', icon: Icons.calendar_month),
+          _WishlistScreen(),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -81,14 +85,47 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
 class _PlaceholderScreen extends StatelessWidget {
   final String title;
-  const _PlaceholderScreen({required this.title});
+  final IconData icon;
+  const _PlaceholderScreen({required this.title, required this.icon});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(title)),
       body: Center(
-        child: Text('$title Screen - Coming Soon', style: const TextStyle(fontSize: 18)),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 80, color: Colors.grey.shade300),
+            const SizedBox(height: 16),
+            Text('$title', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            const Text('Coming Soon', style: TextStyle(color: Colors.grey)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _WishlistScreen extends StatelessWidget {
+  const _WishlistScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Wishlist')),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.favorite_outline, size: 80, color: Colors.grey.shade300),
+            const SizedBox(height: 16),
+            const Text('Your wishlist is empty', style: TextStyle(fontSize: 18)),
+            const SizedBox(height: 8),
+            const Text('Start adding products you love!', style: TextStyle(color: Colors.grey)),
+          ],
+        ),
       ),
     );
   }

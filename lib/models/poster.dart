@@ -13,7 +13,7 @@ class Poster {
     return Poster(
       id: json['_id'] ?? '',
       posterName: json['posterName'] ?? '',
-      imageUrl: json['imageUrl'] ?? '',
+      imageUrl: json['imageUrl'] is Map ? (json['imageUrl']['path'] ?? json['imageUrl']['url']) : (json['imageUrl'] ?? ''),
     );
   }
 }

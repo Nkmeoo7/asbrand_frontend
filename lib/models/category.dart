@@ -13,7 +13,7 @@ class Category {
     return Category(
       id: json['_id'] ?? '',
       name: json['name'] ?? '',
-      image: json['image'],
+      image: json['image'] is Map ? (json['image']['path'] ?? json['image']['url']) : json['image'],
     );
   }
 }
@@ -33,7 +33,9 @@ class SubCategory {
     return SubCategory(
       id: json['_id'] ?? '',
       name: json['name'] ?? '',
-      category: json['categoryId'] != null ? Category.fromJson(json['categoryId']) : null,
+      category: json['categoryId'] is Map 
+          ? Category.fromJson(json['categoryId']) 
+          : null, // Ignore if it's just an ID string, as we can't build a full Category object
     );
   }
 }

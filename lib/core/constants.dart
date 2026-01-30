@@ -8,21 +8,43 @@ class ApiConstants {
   static const String baseUrl = 'http://localhost:3000'; 
 
   // ---------------------------------------------------------------------------
-  // ENDPOINTS
+  // AUTH ENDPOINTS
   // ---------------------------------------------------------------------------
-  
-  // Auth
   static const String login = '$baseUrl/users/login';
   static const String register = '$baseUrl/users/register';
   static const String profile = '$baseUrl/users/profile';
+  static const String users = '$baseUrl/users';
 
-  // Products
+  // ---------------------------------------------------------------------------
+  // PRODUCT ENDPOINTS
+  // ---------------------------------------------------------------------------
   static const String products = '$baseUrl/products';
   static const String categories = '$baseUrl/categories';
+  static const String subCategories = '$baseUrl/subCategories';
+  static const String brands = '$baseUrl/brands';
+  static const String variants = '$baseUrl/variants';
+  static const String variantTypes = '$baseUrl/variantTypes';
 
-  // Cart & Orders
+  // ---------------------------------------------------------------------------
+  // ORDER & CART ENDPOINTS
+  // ---------------------------------------------------------------------------
   static const String orders = '$baseUrl/orders';
-  
-  // Images (Cloudinary or Local)
-  // If local, we might need a helper to fix the URL for emulator
+  static const String coupons = '$baseUrl/coupons';
+
+  // ---------------------------------------------------------------------------
+  // EMI & KYC ENDPOINTS
+  // ---------------------------------------------------------------------------
+  static const String emiPlans = '$baseUrl/emi/plans';
+  static const String emiApply = '$baseUrl/emi/apply';
+  static const String emiApplications = '$baseUrl/emi/my-emis';
+  static const String kyc = '$baseUrl/kyc';
+  static const String kycSubmit = '$baseUrl/kyc/submit';
+  static const String kycStatus = '$baseUrl/kyc/status';
+
+  // ---------------------------------------------------------------------------
+  // OTHER ENDPOINTS
+  // ---------------------------------------------------------------------------
+  static const String posters = '$baseUrl/posters';
+  static const String notifications = '$baseUrl/notifications';
+  static const String payment = '$baseUrl/payment';
 }
