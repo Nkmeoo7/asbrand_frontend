@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
-import 'package:intl/intl.dart';
 import '../../core/theme.dart';
 import '../../models/emi_plan.dart';
 import '../home/home_screen.dart';
@@ -18,11 +17,19 @@ class OrderConfirmationScreen extends StatelessWidget {
     this.emiPlan,
   });
 
+  String _formatCurrency(double amount) {
+    return '₹${amount.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}';
+  }
+
+  String _formatDate(DateTime date) {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return '${date.day.toString().padLeft(2, '0')} ${months[date.month - 1]} ${date.year}';
+  }
+
   @override
   Widget build(BuildContext context) {
-    final currencyFormat = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0);
-    final totalAmount = orderData['totalAmount'] as double;
-    final downPayment = orderData['downPayment'] as double;
+    final totalAmount = (orderData['totalAmount'] as num).toDouble();
+    final downPayment = (orderData['downPayment'] as num).toDouble();
 
     return Scaffold(
       backgroundColor: AppTheme.scaffoldBackground,
@@ -52,7 +59,7 @@ class OrderConfirmationScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Order #${orderId.substring(0, 8).toUpperCase()}',
+                  'Order #${orderId.length > 8 ? orderId.substring(0, 8).toUpperCase() : orderId.toUpperCase()}',
                   style: TextStyle(color: AppTheme.textSecondary, fontSize: 14),
                 ),
                 const SizedBox(height: 32),
@@ -67,19 +74,19 @@ class OrderConfirmationScreen extends StatelessWidget {
                   ),
                   child: Column(
                     children: [
-                      _buildDetailRow('Order Total', currencyFormat.format(totalAmount)),
-                      _buildDetailRow('Paid Today', currencyFormat.format(downPayment), valueColor: Colors.green),
+                      _buildDetailRow('Order Total', _formatCurrency(totalAmount)),
+                      _buildDetailRow('Paid Today', _formatCurrency(downPayment), valueColor: Colors.green),
                       if (emiPlan != null) ...[
                         const Divider(height: 24),
                         _buildDetailRow('EMI Plan', '${emiPlan!.tenure} Months @ 0%'),
                         _buildDetailRow(
                           'Monthly EMI',
-                          currencyFormat.format((totalAmount - downPayment) / emiPlan!.tenure),
+                          _formatCurrency((totalAmount - downPayment) / emiPlan!.tenure),
                           valueColor: AppTheme.primaryColor,
                         ),
                         _buildDetailRow(
                           'Next Due Date',
-                          DateFormat('dd MMM yyyy').format(DateTime.now().add(const Duration(days: 30))),
+                          _formatDate(DateTime.now().add(const Duration(days: 30))),
                         ),
                       ],
                     ],
@@ -88,7 +95,7 @@ class OrderConfirmationScreen extends StatelessWidget {
                 const SizedBox(height: 24),
 
                 // EMI Schedule Preview
-                if (emiPlan != null) _buildEmiSchedulePreview(totalAmount, downPayment, currencyFormat),
+                if (emiPlan != null) _buildEmiSchedulePreview(totalAmount, downPayment),
                 const SizedBox(height: 24),
 
                 // Credit Update
@@ -109,7 +116,7 @@ class OrderConfirmationScreen extends StatelessWidget {
                             children: [
                               const Text('Credit Updated', style: TextStyle(fontWeight: FontWeight.bold)),
                               Text(
-                                'Used: ${currencyFormat.format(totalAmount - downPayment)}',
+                                'Used: ${_formatCurrency(totalAmount - downPayment)}',
                                 style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
                               ),
                             ],
@@ -183,7 +190,7 @@ class OrderConfirmationScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildEmiSchedulePreview(double totalAmount, double downPayment, NumberFormat currencyFormat) {
+  Widget _buildEmiSchedulePreview(double totalAmount, double downPayment) {
     final loanAmount = totalAmount - downPayment;
     final monthlyEmi = loanAmount / emiPlan!.tenure;
     final now = DateTime.now();
@@ -237,10 +244,10 @@ class OrderConfirmationScreen extends StatelessWidget {
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: Text(DateFormat('dd MMM yyyy').format(dueDate)),
+                      child: Text(_formatDate(dueDate)),
                     ),
                     Text(
-                      currencyFormat.format(monthlyEmi),
+                      _formatCurrency(monthlyEmi),
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ],

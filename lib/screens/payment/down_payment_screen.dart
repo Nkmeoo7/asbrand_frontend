@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
-import 'package:intl/intl.dart';
 import '../../core/theme.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/auth_provider.dart';
@@ -30,6 +29,10 @@ class _DownPaymentScreenState extends State<DownPaymentScreen> {
 
   // Down payment percentage (10-25%)
   double get downPaymentPercentage => 0.10; // 10%
+
+  String _formatCurrency(double amount) {
+    return '₹${amount.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}';
+  }
 
   @override
   void dispose() {
@@ -85,8 +88,6 @@ class _DownPaymentScreenState extends State<DownPaymentScreen> {
     double processingFee,
     double monthlyEmi,
   ) {
-    final currencyFormat = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0);
-
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(20),
@@ -114,7 +115,7 @@ class _DownPaymentScreenState extends State<DownPaymentScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(child: Text(item.product.name, maxLines: 1, overflow: TextOverflow.ellipsis)),
-                Text(currencyFormat.format(item.product.offerPrice ?? item.product.price)),
+                Text(_formatCurrency(item.product.offerPrice ?? item.product.price)),
               ],
             ),
           )),
@@ -122,15 +123,15 @@ class _DownPaymentScreenState extends State<DownPaymentScreen> {
           const Divider(height: 24),
 
           // Breakdown
-          _buildSummaryRow('Subtotal', currencyFormat.format(subtotal)),
+          _buildSummaryRow('Subtotal', _formatCurrency(subtotal)),
           if (widget.selectedPlan != null) ...[
-            _buildSummaryRow('Down Payment (${(downPaymentPercentage * 100).toInt()}%)', currencyFormat.format(downPayment), 
+            _buildSummaryRow('Down Payment (${(downPaymentPercentage * 100).toInt()}%)', _formatCurrency(downPayment), 
                 highlight: true),
-            _buildSummaryRow('Loan Amount', currencyFormat.format(loanAmount)),
-            _buildSummaryRow('Processing Fee', currencyFormat.format(processingFee)),
+            _buildSummaryRow('Loan Amount', _formatCurrency(loanAmount)),
+            _buildSummaryRow('Processing Fee', _formatCurrency(processingFee)),
             _buildSummaryRow('Interest', '₹0 (0%)', valueColor: Colors.green),
             const Divider(height: 16),
-            _buildSummaryRow('Monthly EMI', '${currencyFormat.format(monthlyEmi)} x ${widget.selectedPlan!.tenure}',
+            _buildSummaryRow('Monthly EMI', '${_formatCurrency(monthlyEmi)} x ${widget.selectedPlan!.tenure}',
                 isBold: true, valueColor: AppTheme.primaryColor),
           ],
 
@@ -148,7 +149,7 @@ class _DownPaymentScreenState extends State<DownPaymentScreen> {
               children: [
                 const Text('Pay Now', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 Text(
-                  currencyFormat.format(widget.selectedPlan != null ? downPayment : subtotal),
+                  _formatCurrency(widget.selectedPlan != null ? downPayment : subtotal),
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.primaryColor),
                 ),
               ],
@@ -399,7 +400,6 @@ class _DownPaymentScreenState extends State<DownPaymentScreen> {
   }
 
   Widget _buildPayButton(double amount) {
-    final currencyFormat = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -416,7 +416,7 @@ class _DownPaymentScreenState extends State<DownPaymentScreen> {
         child: _isLoading
             ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
             : Text(
-                'Pay ${currencyFormat.format(widget.selectedPlan != null ? amount : context.read<CartProvider>().totalAmount)}',
+                'Pay ${_formatCurrency(widget.selectedPlan != null ? amount : context.read<CartProvider>().totalAmount)}',
                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
               ),
       ),
@@ -437,7 +437,7 @@ class _DownPaymentScreenState extends State<DownPaymentScreen> {
 
       // Create order
       final orderData = {
-        'userId': auth.userId,
+        'userId': auth.user?.id ?? '',
         'items': cart.items.map((item) => {
           'productId': item.product.id,
           'quantity': item.quantity,
