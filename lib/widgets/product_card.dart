@@ -79,7 +79,7 @@ class ProductCard extends StatelessWidget {
             ),
             // Content
             Padding(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -92,7 +92,7 @@ class ProductCard extends StatelessWidget {
                       color: AppTheme.priceColor,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  // const SizedBox(height: 4),
                   // Product Name
                   Text(
                     name,
@@ -103,7 +103,7 @@ class ProductCard extends StatelessWidget {
                       color: AppTheme.textSecondary,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  // const SizedBox(height: 4),
                   // Prices
                   Row(
                     children: [
