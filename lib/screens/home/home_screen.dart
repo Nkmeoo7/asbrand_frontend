@@ -14,6 +14,8 @@ import '../product/product_detail_screen.dart';
 import '../auth/login_screen.dart';
 import '../cart/cart_screen.dart';
 import '../checkout/checkout_screen.dart';
+import '../kyc/kyc_screen.dart';
+import '../credit/credit_dashboard_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -501,6 +503,26 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           )),
           const Divider(),
+          if (auth.isAuthenticated) ...[  
+            ListTile(
+              leading: const Icon(Iconsax.card, color: AppTheme.primaryColor),
+              title: const Text('Credit Dashboard'),
+              trailing: const Icon(Iconsax.arrow_right_3),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const CreditDashboardScreen()));
+              },
+            ),
+            ListTile(
+              leading: const Icon(Iconsax.receipt_2, color: AppTheme.primaryColor),
+              title: const Text('My EMIs'),
+              trailing: const Icon(Iconsax.arrow_right_3),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const MyEmisScreen()));
+              },
+            ),
+          ],
           ListTile(
             leading: const Icon(Iconsax.bag_2, color: AppTheme.primaryColor),
             title: const Text('My Orders'),

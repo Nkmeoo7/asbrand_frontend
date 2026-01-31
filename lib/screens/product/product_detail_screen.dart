@@ -190,7 +190,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         children: [
           Row(
             children: [
-              Icon(Icons.credit_card, color: AppTheme.primaryColor, size: 20),
+              Icon(Iconsax.card, color: AppTheme.primaryColor, size: 20),
               const SizedBox(width: 8),
               const Text('Pay with EMI', style: TextStyle(fontWeight: FontWeight.bold)),
               const Spacer(),
