@@ -45,7 +45,7 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  // Register
+  // Register (with auto-login)
   Future<bool> register(String name, String email, String phone, String password) async {
     _isLoading = true;
     notifyListeners();
@@ -57,8 +57,21 @@ class AuthProvider with ChangeNotifier {
         'phone': phone,
         'password': password,
       });
-      // Registration successful, usually redirect to login or auto-login
-      // For now, return true
+      
+      if (response['success'] == true) {
+        // Check if backend returns token on registration
+        if (response['data'] != null && response['data']['token'] != null) {
+          _token = response['data']['token'];
+          _user = User.fromJson(response['data']['user']);
+          await _storage.write(key: 'auth_token', value: _token);
+        } else {
+          // Auto-login with credentials
+          _isLoading = false;
+          notifyListeners();
+          return await login(email, password);
+        }
+      }
+      
       _isLoading = false;
       notifyListeners();
       return response['success'] == true;
