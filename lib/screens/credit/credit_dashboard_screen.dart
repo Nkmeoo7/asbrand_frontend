@@ -5,7 +5,10 @@ import '../../core/theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/api_service.dart';
 import '../../models/user_kyc.dart';
+import '../../widgets/credit_speedometer.dart';
+import '../../widgets/limit_boost_card.dart';
 import '../kyc/kyc_screen.dart';
+import 'repayment_calendar_screen.dart';
 
 class CreditDashboardScreen extends StatefulWidget {
   const CreditDashboardScreen({super.key});
@@ -18,6 +21,11 @@ class _CreditDashboardScreenState extends State<CreditDashboardScreen> {
   UserKyc? _kycData;
   bool _isLoading = true;
   String? _error;
+
+  // Mock data for demo
+  final double _usedCredit = 25000;
+  final int _onTimePayments = 3;
+  final int _requiredPayments = 5;
 
   @override
   void initState() {
@@ -47,11 +55,23 @@ class _CreditDashboardScreenState extends State<CreditDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
+    final isVerified = _kycData?.verificationStatus == 'verified';
+    final creditLimit = _kycData?.creditLimit ?? 100000;
 
     return Scaffold(
       backgroundColor: AppTheme.scaffoldBackground,
       appBar: AppBar(
         title: const Text('Credit Dashboard'),
+        actions: [
+          IconButton(
+            onPressed: () => Navigator.push(
+              context, 
+              MaterialPageRoute(builder: (_) => const RepaymentCalendarScreen()),
+            ),
+            icon: const Icon(Iconsax.calendar),
+            tooltip: 'Payment Calendar',
+          ),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -61,20 +81,106 @@ class _CreditDashboardScreenState extends State<CreditDashboardScreen> {
                   onRefresh: _loadKycStatus,
                   child: SingleChildScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.all(16),
                     child: Column(
                       children: [
-                        _buildCreditHeader(auth),
-                        const SizedBox(height: 16),
+                        // Welcome Header
+                        _buildWelcomeHeader(auth),
+                        const SizedBox(height: 20),
+
+                        // Credit Speedometer
+                        if (isVerified)
+                          CreditSpeedometer(
+                            totalLimit: creditLimit,
+                            usedCredit: _usedCredit,
+                          ),
+                        const SizedBox(height: 20),
+
+                        // Limit Boost Card
+                        if (isVerified && _onTimePayments < _requiredPayments)
+                          LimitBoostCard(
+                            onTimePayments: _onTimePayments,
+                            requiredPayments: _requiredPayments,
+                            currentLimit: creditLimit,
+                            nextLimit: creditLimit + 20000,
+                          ),
+                        if (isVerified && _onTimePayments < _requiredPayments)
+                          const SizedBox(height: 20),
+
+                        // KYC Status Card
                         _buildKycStatusCard(),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 20),
+
+                        // Quick Actions
+                        _buildQuickActions(),
+                        const SizedBox(height: 20),
+
+                        // Credit Features
                         _buildCreditFeatures(),
-                        const SizedBox(height: 16),
-                        if (_kycData?.verificationStatus == 'verified')
-                          _buildActiveEmiSection(),
+                        const SizedBox(height: 20),
+
+                        // Active EMIs
+                        if (isVerified) _buildActiveEmiSection(),
+                        const SizedBox(height: 40),
                       ],
                     ),
                   ),
                 ),
+    );
+  }
+
+  Widget _buildWelcomeHeader(AuthProvider auth) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [AppTheme.primaryColor, AppTheme.primaryDark],
+        ),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Iconsax.user, color: Colors.white, size: 28),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Hello, ${auth.user?.name ?? 'User'}!',
+                  style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  _kycData?.verificationStatus == 'verified' 
+                      ? 'Your credit is ready to use'
+                      : 'Complete KYC to unlock credit',
+                  style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 13),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              _kycData?.verificationStatus == 'verified' ? Iconsax.verify : Iconsax.lock,
+              color: AppTheme.primaryColor,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -102,99 +208,6 @@ class _CreditDashboardScreenState extends State<CreditDashboardScreen> {
     );
   }
 
-  Widget _buildCreditHeader(AuthProvider auth) {
-    final isVerified = _kycData?.verificationStatus == 'verified';
-    final creditLimit = _kycData?.creditLimit ?? 0;
-    final usedCredit = 0.0; // TODO: Calculate from active EMIs
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [AppTheme.primaryColor, AppTheme.primaryDark],
-        ),
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Iconsax.card, color: Colors.white, size: 30),
-              ),
-              const SizedBox(width: 16),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Hello, ${auth.user?.name ?? 'User'}!',
-                    style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 14),
-                  ),
-                  const Text(
-                    'Your Credit Dashboard',
-                    style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-
-          // Credit Limit Display
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              children: [
-                Text(
-                  isVerified ? 'Available Credit' : 'Potential Credit',
-                  style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 14),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '₹${creditLimit.toStringAsFixed(0)}',
-                  style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold),
-                ),
-                if (isVerified && creditLimit > 0) ...[
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildCreditStat('Used', '₹${usedCredit.toStringAsFixed(0)}', Colors.amber),
-                      Container(width: 1, height: 40, color: Colors.white.withOpacity(0.3)),
-                      _buildCreditStat('Available', '₹${(creditLimit - usedCredit).toStringAsFixed(0)}', Colors.green),
-                    ],
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCreditStat(String label, String value, Color color) {
-    return Column(
-      children: [
-        Text(label, style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 12)),
-        const SizedBox(height: 4),
-        Text(value, style: TextStyle(color: color, fontSize: 18, fontWeight: FontWeight.bold)),
-      ],
-    );
-  }
-
   Widget _buildKycStatusCard() {
     final status = _kycData?.verificationStatus ?? 'not_submitted';
     
@@ -208,14 +221,14 @@ class _CreditDashboardScreenState extends State<CreditDashboardScreen> {
       case 'verified':
         icon = Iconsax.tick_circle;
         color = Colors.green;
-        title = 'KYC Verified';
-        subtitle = 'Your identity has been verified. Enjoy your credit limit!';
+        title = 'KYC Verified ✓';
+        subtitle = 'Your identity is verified. Shop on EMI anytime!';
         break;
       case 'under_review':
         icon = Iconsax.clock;
         color = Colors.orange;
         title = 'KYC Under Review';
-        subtitle = 'Your documents are being verified. This usually takes 24-48 hours.';
+        subtitle = 'Verification in progress (24-48 hours).';
         break;
       case 'rejected':
         icon = Iconsax.close_circle;
@@ -231,7 +244,7 @@ class _CreditDashboardScreenState extends State<CreditDashboardScreen> {
         icon = Iconsax.card_add;
         color = AppTheme.primaryColor;
         title = 'Complete KYC';
-        subtitle = 'Verify your identity to unlock credit limit and shop on EMI.';
+        subtitle = 'Verify identity to unlock ₹1 Lakh credit limit.';
         action = ElevatedButton.icon(
           onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const KycScreen())),
           icon: const Icon(Iconsax.arrow_right_3),
@@ -240,7 +253,6 @@ class _CreditDashboardScreenState extends State<CreditDashboardScreen> {
     }
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -277,9 +289,47 @@ class _CreditDashboardScreenState extends State<CreditDashboardScreen> {
     );
   }
 
+  Widget _buildQuickActions() {
+    return Row(
+      children: [
+        Expanded(child: _buildActionCard(Iconsax.calendar, 'Payment\nCalendar', 
+            () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RepaymentCalendarScreen())))),
+        const SizedBox(width: 12),
+        Expanded(child: _buildActionCard(Iconsax.receipt_2, 'My\nEMIs', 
+            () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyEmisScreen())))),
+        const SizedBox(width: 12),
+        Expanded(child: _buildActionCard(Iconsax.document, 'Loan\nDocs', () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Loan documents coming soon')),
+          );
+        })),
+      ],
+    );
+  }
+
+  Widget _buildActionCard(IconData icon, String label, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: AppTheme.primaryColor, size: 28),
+            const SizedBox(height: 8),
+            Text(label, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildCreditFeatures() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -294,7 +344,7 @@ class _CreditDashboardScreenState extends State<CreditDashboardScreen> {
           _buildFeatureRow(Iconsax.percentage_square, 'No-Cost EMI', '0% interest on all purchases'),
           _buildFeatureRow(Iconsax.clock, 'Flexible Tenure', '3 to 12 months EMI options'),
           _buildFeatureRow(Iconsax.card_slash, 'No Credit Card', 'Works with debit cards & UPI'),
-          _buildFeatureRow(Iconsax.shield_tick, 'Secure', 'Bank-grade security & encryption'),
+          _buildFeatureRow(Iconsax.shield_tick, 'Secure', 'Bank-grade security'),
         ],
       ),
     );
@@ -323,7 +373,6 @@ class _CreditDashboardScreenState extends State<CreditDashboardScreen> {
 
   Widget _buildActiveEmiSection() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -376,6 +425,32 @@ class _MyEmisScreenState extends State<MyEmisScreen> with SingleTickerProviderSt
   List<dynamic> _emiApplications = [];
   bool _isLoading = true;
 
+  // Mock data for demo
+  final List<Map<String, dynamic>> _mockEmis = [
+    {
+      'orderId': 'ORD12345ABC',
+      'productName': 'iPhone 15 Pro',
+      'status': 'active',
+      'tenure': 6,
+      'paidInstallments': 2,
+      'monthlyEmi': 20833,
+      'totalAmount': 125000,
+      'remainingAmount': 83332,
+      'nextDueDate': '2026-02-05',
+    },
+    {
+      'orderId': 'ORD67890XYZ',
+      'productName': 'Samsung TV 55"',
+      'status': 'active',
+      'tenure': 3,
+      'paidInstallments': 1,
+      'monthlyEmi': 15000,
+      'totalAmount': 45000,
+      'remainingAmount': 30000,
+      'nextDueDate': '2026-02-05',
+    },
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -384,18 +459,13 @@ class _MyEmisScreenState extends State<MyEmisScreen> with SingleTickerProviderSt
   }
 
   Future<void> _loadEmiApplications() async {
-    try {
-      final response = await ApiService().get('${ApiService().toString()}/emi/my-applications');
-      if (mounted && response['success'] == true) {
-        setState(() {
-          _emiApplications = response['data'] ?? [];
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+    // Use mock data for demo
+    await Future.delayed(const Duration(milliseconds: 500));
+    if (mounted) {
+      setState(() {
+        _emiApplications = _mockEmis;
+        _isLoading = false;
+      });
     }
   }
 
@@ -443,8 +513,6 @@ class _MyEmisScreenState extends State<MyEmisScreen> with SingleTickerProviderSt
             Icon(Iconsax.receipt_2, size: 80, color: Colors.grey.shade300),
             const SizedBox(height: 16),
             Text('No EMIs found', style: TextStyle(color: AppTheme.textSecondary, fontSize: 16)),
-            const SizedBox(height: 8),
-            Text('Your EMI applications will appear here', style: TextStyle(color: AppTheme.textHint)),
           ],
         ),
       );
@@ -462,22 +530,7 @@ class _MyEmisScreenState extends State<MyEmisScreen> with SingleTickerProviderSt
     final paidInstallments = emi['paidInstallments'] ?? 0;
     final totalInstallments = emi['tenure'] ?? 0;
     final monthlyEmi = emi['monthlyEmi'] ?? 0;
-    final nextDueDate = emi['nextDueDate'];
-
-    Color statusColor;
-    switch (status) {
-      case 'active':
-        statusColor = Colors.green;
-        break;
-      case 'completed':
-        statusColor = Colors.blue;
-        break;
-      case 'defaulted':
-        statusColor = Colors.red;
-        break;
-      default:
-        statusColor = Colors.orange;
-    }
+    final remainingAmount = emi['remainingAmount'] ?? 0;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -490,87 +543,232 @@ class _MyEmisScreenState extends State<MyEmisScreen> with SingleTickerProviderSt
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Header
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Order #${emi['orderId']?.substring(0, 8) ?? 'N/A'}', 
-                  style: const TextStyle(fontWeight: FontWeight.bold)),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(emi['productName'] ?? 'Product', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    Text('Order #${emi['orderId']?.substring(0, 8) ?? 'N/A'}', 
+                        style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+                  ],
+                ),
+              ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.1),
+                  color: Colors.green.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   status.toString().toUpperCase(),
-                  style: TextStyle(color: statusColor, fontSize: 12, fontWeight: FontWeight.bold),
+                  style: const TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.bold),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
 
+          // Progress
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildEmiStat('Monthly EMI', '₹${monthlyEmi.toString()}'),
-              _buildEmiStat('Progress', '$paidInstallments / $totalInstallments'),
-              _buildEmiStat('Total', '₹${(emi['totalAmount'] ?? 0).toString()}'),
-            ],
-          ),
-
-          if (status == 'active' && nextDueDate != null) ...[
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  Icon(Iconsax.calendar, color: AppTheme.primaryColor, size: 20),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text('Next due: ${DateTime.parse(nextDueDate).day}/${DateTime.parse(nextDueDate).month}/${DateTime.parse(nextDueDate).year}'),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      // TODO: Implement payment
-                    },
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('$paidInstallments of $totalInstallments paid', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+                    const SizedBox(height: 4),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: LinearProgressIndicator(
+                        value: totalInstallments > 0 ? paidInstallments / totalInstallments : 0,
+                        backgroundColor: Colors.grey.shade200,
+                        valueColor: const AlwaysStoppedAnimation<Color>(Colors.green),
+                        minHeight: 8,
+                      ),
                     ),
-                    child: const Text('Pay Now'),
-                  ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text('₹$monthlyEmi', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                  const Text('/month', style: TextStyle(fontSize: 11, color: Colors.grey)),
                 ],
               ),
-            ),
-          ],
-
-          // Progress bar
+            ],
+          ),
           const SizedBox(height: 16),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: totalInstallments > 0 ? paidInstallments / totalInstallments : 0,
-              backgroundColor: Colors.grey.shade200,
-              valueColor: AlwaysStoppedAnimation<Color>(statusColor),
-              minHeight: 6,
-            ),
+
+          // Actions Row
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => _showForecloseDialog(emi),
+                  icon: const Icon(Iconsax.money_send, size: 18),
+                  label: const Text('Foreclose'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppTheme.primaryColor,
+                    side: const BorderSide(color: AppTheme.primaryColor),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Redirecting to payment...')),
+                    );
+                  },
+                  icon: const Icon(Iconsax.card, size: 18),
+                  label: const Text('Pay EMI'),
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildEmiStat(String label, String value) {
-    return Column(
-      children: [
-        Text(label, style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
-        const SizedBox(height: 4),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
-      ],
+  void _showForecloseDialog(Map<String, dynamic> emi) {
+    final remainingAmount = emi['remainingAmount'] ?? 0;
+    final paidInstallments = emi['paidInstallments'] ?? 0;
+    final totalInstallments = emi['tenure'] ?? 0;
+    final remainingInstallments = totalInstallments - paidInstallments;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Header
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.green.shade50,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Iconsax.money_send, color: Colors.green.shade600),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Foreclose Loan', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      Text('Pay remaining amount to close', style: TextStyle(color: AppTheme.textSecondary)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+
+            // Breakdown
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade50,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
+                  _buildBreakdownRow('Remaining Installments', '$remainingInstallments'),
+                  _buildBreakdownRow('Outstanding Principal', '₹$remainingAmount'),
+                  _buildBreakdownRow('Foreclosure Fee', '₹0 (Waived)'),
+                  const Divider(),
+                  _buildBreakdownRow('Total Payable', '₹$remainingAmount', isBold: true),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Benefits
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.green.shade50,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(Iconsax.tick_circle, color: Colors.green.shade600, size: 20),
+                  const SizedBox(width: 8),
+                  Text('Credit limit restored immediately', style: TextStyle(color: Colors.green.shade700)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Actions
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cancel'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 2,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Redirecting to payment...'), backgroundColor: Colors.green),
+                      );
+                    },
+                    child: Text('Pay ₹$remainingAmount'),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBreakdownRow(String label, String value, {bool isBold = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: TextStyle(color: isBold ? null : AppTheme.textSecondary)),
+          Text(value, style: TextStyle(fontWeight: isBold ? FontWeight.bold : FontWeight.normal)),
+        ],
+      ),
     );
   }
 }

@@ -29,7 +29,7 @@ class ApiConstants {
   // ORDER & CART ENDPOINTS
   // ---------------------------------------------------------------------------
   static const String orders = '$baseUrl/orders';
-  static const String coupons = '$baseUrl/coupons';
+  static const String coupons = '$baseUrl/couponCodes';
 
   // ---------------------------------------------------------------------------
   // EMI & KYC ENDPOINTS
@@ -45,6 +45,6 @@ class ApiConstants {
   // OTHER ENDPOINTS
   // ---------------------------------------------------------------------------
   static const String posters = '$baseUrl/posters';
-  static const String notifications = '$baseUrl/notifications';
+  static const String notifications = '$baseUrl/notification';
   static const String payment = '$baseUrl/payment';
 }
