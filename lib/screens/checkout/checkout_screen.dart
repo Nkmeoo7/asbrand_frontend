@@ -5,8 +5,11 @@ import '../../core/theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../models/order.dart';
+import '../../models/emi_plan.dart';
 import '../../services/api_service.dart';
 import '../auth/login_screen.dart';
+import '../payment/down_payment_screen.dart';
+import '../../widgets/emi_plan_picker.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -31,7 +34,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final _cityController = TextEditingController();
   final _stateController = TextEditingController();
 
-  String _paymentMethod = 'cod';
+  String _paymentMethod = 'emi'; // Default to EMI
+  EmiPlan? _selectedEmiPlan;
+  bool _useEmi = true;
 
   @override
   void dispose() {
@@ -113,7 +118,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 _buildStepLine(0),
                 _buildStepIndicator(1, 'Address'),
                 _buildStepLine(1),
-                _buildStepIndicator(2, 'Payment'),
+                _buildStepIndicator(2, 'EMI'),
+                _buildStepLine(2),
+                _buildStepIndicator(3, 'Pay'),
               ],
             ),
           ),
@@ -181,6 +188,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       case 1:
         return _buildAddressStep();
       case 2:
+        return _buildEmiStep(cart);
+      case 3:
         return _buildPaymentStep(cart);
       default:
         return const SizedBox();
@@ -443,6 +452,176 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
+  Widget _buildEmiStep(CartProvider cart) {
+    return Column(
+      children: [
+        // EMI Toggle
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Payment Type', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+              
+              // EMI Option
+              GestureDetector(
+                onTap: () => setState(() => _useEmi = true),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: _useEmi ? AppTheme.primaryColor.withOpacity(0.1) : Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: _useEmi ? AppTheme.primaryColor : Colors.grey.shade200, width: 2),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 24, height: 24,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: _useEmi ? AppTheme.primaryColor : Colors.grey, width: 2),
+                        ),
+                        child: _useEmi ? Center(child: Container(width: 12, height: 12, decoration: BoxDecoration(shape: BoxShape.circle, color: AppTheme.primaryColor))) : null,
+                      ),
+                      const SizedBox(width: 16),
+                      Icon(Iconsax.calendar, color: _useEmi ? AppTheme.primaryColor : Colors.grey),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text('Pay with EMI', style: TextStyle(fontWeight: FontWeight.bold, color: _useEmi ? AppTheme.primaryColor : null)),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(color: Colors.green, borderRadius: BorderRadius.circular(4)),
+                                  child: const Text('0% Interest', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
+                                ),
+                              ],
+                            ),
+                            Text('Split into 3-12 monthly payments', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              
+              // Full Payment Option
+              GestureDetector(
+                onTap: () => setState(() {
+                  _useEmi = false;
+                  _selectedEmiPlan = null;
+                }),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: !_useEmi ? AppTheme.primaryColor.withOpacity(0.1) : Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: !_useEmi ? AppTheme.primaryColor : Colors.grey.shade200, width: 2),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 24, height: 24,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: !_useEmi ? AppTheme.primaryColor : Colors.grey, width: 2),
+                        ),
+                        child: !_useEmi ? Center(child: Container(width: 12, height: 12, decoration: BoxDecoration(shape: BoxShape.circle, color: AppTheme.primaryColor))) : null,
+                      ),
+                      const SizedBox(width: 16),
+                      Icon(Iconsax.money, color: !_useEmi ? AppTheme.primaryColor : Colors.grey),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Pay Full Amount', style: TextStyle(fontWeight: FontWeight.bold, color: !_useEmi ? AppTheme.primaryColor : null)),
+                            Text('UPI, Card, or Net Banking', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        
+        // EMI Plan Picker (if EMI selected)
+        if (_useEmi)
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Select EMI Plan', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 16),
+                EmiPlanPicker(
+                  productPrice: cart.totalAmount,
+                  onPlanSelected: (plan, emi) {
+                    setState(() => _selectedEmiPlan = plan);
+                  },
+                ),
+              ],
+            ),
+          ),
+        const SizedBox(height: 24),
+        
+        // Navigation
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: () => setState(() => _currentStep = 1),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  side: const BorderSide(color: AppTheme.primaryColor),
+                ),
+                child: const Text('Back'),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              flex: 2,
+              child: ElevatedButton(
+                onPressed: () {
+                  if (_useEmi && _selectedEmiPlan == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Please select an EMI plan'), backgroundColor: Colors.red),
+                    );
+                    return;
+                  }
+                  setState(() => _currentStep = 3);
+                },
+                style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
+                child: const Text('Proceed to Pay', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
   Widget _buildPaymentStep(CartProvider cart) {
     return Column(
       children: [
@@ -508,7 +687,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           children: [
             Expanded(
               child: OutlinedButton(
-                onPressed: () => setState(() => _currentStep = 1),
+                onPressed: () => setState(() => _currentStep = 2),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   side: const BorderSide(color: AppTheme.primaryColor),
@@ -520,11 +699,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             Expanded(
               flex: 2,
               child: ElevatedButton(
-                onPressed: _isLoading ? null : () => _placeOrder(cart),
+                onPressed: _isLoading ? null : () => _proceedToPayment(cart),
                 style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
                 child: _isLoading
                     ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Text('Place Order', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    : Text(_useEmi ? 'Pay Down Payment' : 'Pay Now', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               ),
             ),
           ],
@@ -553,6 +732,26 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             const Spacer(),
             if (isSelected) const Icon(Iconsax.tick_circle, color: AppTheme.primaryColor),
           ],
+        ),
+      ),
+    );
+  }
+
+  void _proceedToPayment(CartProvider cart) {
+    final shippingAddress = {
+      'phone': _phoneController.text,
+      'street': _streetController.text,
+      'city': _cityController.text,
+      'state': _stateController.text,
+      'postalCode': _pincodeController.text,
+    };
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => DownPaymentScreen(
+          selectedPlan: _useEmi ? _selectedEmiPlan : null,
+          shippingAddress: shippingAddress,
         ),
       ),
     );
