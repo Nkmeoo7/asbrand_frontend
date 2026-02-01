@@ -5,7 +5,7 @@ class ApiConstants {
   // If you are using the Android Emulator, use 'http://10.0.2.2:3000'
   // If you are using the iOS Simulator, use 'http://localhost:3000'
   // If you are using a physical device, use your PC's LAN IP (e.g., 'http://192.168.1.5:3000')
-  static const String baseUrl = 'http://localhost:3000'; 
+  static const String baseUrl = 'http://10.40.21.25:3000'; 
 
   // ---------------------------------------------------------------------------
   // AUTH ENDPOINTS
@@ -47,4 +47,10 @@ class ApiConstants {
   static const String posters = '$baseUrl/posters';
   static const String notifications = '$baseUrl/notification';
   static const String payment = '$baseUrl/payment';
+
+  // Change these three lines to match your router.post() paths
+static const String initiateOrder = '$payment/initiate'; // Removed '-order'
+static const String verifyPayment = '$payment/verify';   // Removed '-payment'
+static const String cod = '$payment/cod';              // This one is already correct
+
 }
