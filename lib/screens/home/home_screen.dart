@@ -452,16 +452,16 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     return SizedBox(
-      height: 280,
+      height: 220,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         itemCount: products.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 12),
+        separatorBuilder: (_, __) => const SizedBox(width: 10),
         itemBuilder: (context, index) {
           final product = products[index];
           return SizedBox(
-            width: 160,
+            width: 150,
             child: ProductCard(
               imageUrl: product.primaryImage,
               name: product.name,
@@ -472,40 +472,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 context,
                 MaterialPageRoute(builder: (_) => ProductDetailScreen(product: product)),
               ),
-              onAddToCart: () {
-                context.read<CartProvider>().addItem(product);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Row(
-                      children: [
-                        const Icon(Iconsax.tick_circle, color: Colors.white, size: 18),
-                        const SizedBox(width: 8),
-                        Expanded(child: Text('${product.name} added to cart')),
-                      ],
-                    ),
-                    backgroundColor: AppTheme.primaryColor,
-                    behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    duration: const Duration(seconds: 2),
-                    action: SnackBarAction(
-                      label: 'VIEW CART',
-                      textColor: Colors.white,
-                      onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen())),
-                    ),
-                  ),
-                );
-              },
-              onWishlistTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Text('Added to wishlist!'),
-                    backgroundColor: Colors.pink,
-                    behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    duration: const Duration(seconds: 1),
-                  ),
-                );
-              },
             ),
           );
         },
