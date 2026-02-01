@@ -8,6 +8,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../widgets/product_card.dart';
 import '../../widgets/category_chip.dart';
+import '../../widgets/shimmer_loading.dart';
 import '../../models/category.dart';
 import '../../models/product.dart';
 import '../product/product_detail_screen.dart';
@@ -63,7 +64,44 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Consumer2<ProductProvider, CategoryProvider>(
         builder: (context, productProvider, categoryProvider, _) {
           if (productProvider.isLoading || categoryProvider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  SizedBox(height: 16),
+                  // Search bar skeleton
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: _SearchBarSkeleton(),
+                  ),
+                  SizedBox(height: 16),
+                  // Category chips skeleton
+                  CategoryChipsSkeleton(),
+                  SizedBox(height: 16),
+                  // Banner skeleton
+                  BannerSkeleton(),
+                  SizedBox(height: 16),
+                  // Credit card skeleton
+                  _CreditCardSkeleton(),
+                  SizedBox(height: 20),
+                  // Section header skeleton
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: _SectionHeaderSkeleton(),
+                  ),
+                  SizedBox(height: 12),
+                  // Product grid skeleton
+                  ProductGridSkeleton(),
+                  SizedBox(height: 20),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: _SectionHeaderSkeleton(),
+                  ),
+                  SizedBox(height: 12),
+                  ProductGridSkeleton(),
+                ],
+              ),
+            );
           }
 
           if (productProvider.error != null) {
@@ -414,7 +452,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     return SizedBox(
-      height: 220,
+      height: 280,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -423,7 +461,7 @@ class _HomeScreenState extends State<HomeScreen> {
         itemBuilder: (context, index) {
           final product = products[index];
           return SizedBox(
-            width: 150,
+            width: 160,
             child: ProductCard(
               imageUrl: product.primaryImage,
               name: product.name,
@@ -434,6 +472,40 @@ class _HomeScreenState extends State<HomeScreen> {
                 context,
                 MaterialPageRoute(builder: (_) => ProductDetailScreen(product: product)),
               ),
+              onAddToCart: () {
+                context.read<CartProvider>().addItem(product.id, product.name, product.offerPrice ?? product.price, product.primaryImage);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Row(
+                      children: [
+                        const Icon(Iconsax.tick_circle, color: Colors.white, size: 18),
+                        const SizedBox(width: 8),
+                        Expanded(child: Text('${product.name} added to cart')),
+                      ],
+                    ),
+                    backgroundColor: AppTheme.primaryColor,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    duration: const Duration(seconds: 2),
+                    action: SnackBarAction(
+                      label: 'VIEW CART',
+                      textColor: Colors.white,
+                      onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen())),
+                    ),
+                  ),
+                );
+              },
+              onWishlistTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text('Added to wishlist!'),
+                    backgroundColor: Colors.pink,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    duration: const Duration(seconds: 1),
+                  ),
+                );
+              },
             ),
           );
         },
@@ -542,6 +614,73 @@ class _HomeScreenState extends State<HomeScreen> {
                 if (context.mounted) Navigator.pop(context);
               },
             ),
+        ],
+      ),
+    );
+  }
+}
+
+// Helper skeleton widgets for loading state
+class _SearchBarSkeleton extends StatelessWidget {
+  const _SearchBarSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return ShimmerLoading(
+      child: Container(
+        height: 48,
+        decoration: BoxDecoration(
+          color: Colors.grey[300],
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+    );
+  }
+}
+
+class _CreditCardSkeleton extends StatelessWidget {
+  const _CreditCardSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return ShimmerLoading(
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16),
+        height: 80,
+        decoration: BoxDecoration(
+          color: Colors.grey[300],
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+    );
+  }
+}
+
+class _SectionHeaderSkeleton extends StatelessWidget {
+  const _SectionHeaderSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return ShimmerLoading(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Container(
+            height: 18,
+            width: 120,
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          Container(
+            height: 14,
+            width: 60,
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
         ],
       ),
     );
