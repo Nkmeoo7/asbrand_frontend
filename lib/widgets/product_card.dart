@@ -1,17 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../core/theme.dart';
 
-class ProductCard extends StatefulWidget {
+/// Flipkart-style product card - clean, minimal design
+class ProductCard extends StatelessWidget {
   final String imageUrl;
   final String name;
   final double price;
   final double originalPrice;
   final double emiPerMonth;
   final VoidCallback? onTap;
-  final VoidCallback? onAddToCart;
-  final VoidCallback? onWishlistTap;
-  final bool isInWishlist;
 
   const ProductCard({
     super.key,
@@ -21,311 +18,147 @@ class ProductCard extends StatefulWidget {
     required this.originalPrice,
     required this.emiPerMonth,
     this.onTap,
-    this.onAddToCart,
-    this.onWishlistTap,
-    this.isInWishlist = false,
   });
 
-  @override
-  State<ProductCard> createState() => _ProductCardState();
-}
-
-class _ProductCardState extends State<ProductCard> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _scaleAnimation;
-  bool _isHovered = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 150),
-      vsync: this,
-    );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
   int get discountPercent {
-    if (widget.originalPrice > widget.price) {
-      return (((widget.originalPrice - widget.price) / widget.originalPrice) * 100).round();
+    if (originalPrice > price) {
+      return (((originalPrice - price) / originalPrice) * 100).round();
     }
     return 0;
   }
 
   @override
   Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      child: GestureDetector(
-        onTapDown: (_) => _controller.forward(),
-        onTapUp: (_) => _controller.reverse(),
-        onTapCancel: () => _controller.reverse(),
-        onTap: widget.onTap,
-        child: ScaleTransition(
-          scale: _scaleAnimation,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(_isHovered ? 0.12 : 0.06),
-                  blurRadius: _isHovered ? 16 : 10,
-                  offset: Offset(0, _isHovered ? 6 : 3),
-                ),
-              ],
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.grey.shade200, width: 1),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Image Section
+            Expanded(
+              flex: 3,
+              child: Stack(
+                children: [
+                  // Product Image
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(8),
+                    child: Image.network(
+                      imageUrl,
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, __, ___) => Center(
+                        child: Icon(Icons.image_outlined, size: 40, color: Colors.grey[300]),
+                      ),
+                    ),
+                  ),
+                  
+                  // Discount Badge (Flipkart style - green)
+                  if (discountPercent > 0)
+                    Positioned(
+                      top: 6,
+                      left: 6,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF388E3C),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                        child: Text(
+                          '$discountPercent% off',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Image with badges and wishlist
-                Expanded(
-                  flex: 3,
-                  child: Stack(
-                    children: [
-                      // Product Image
-                      ClipRRect(
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: Image.network(
-                            widget.imageUrl,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(
-                              color: Colors.grey[100],
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Iconsax.image, size: 40, color: Colors.grey[300]),
-                                  const SizedBox(height: 4),
-                                  Text('No Image', style: TextStyle(color: Colors.grey[400], fontSize: 10)),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
+            
+            // Divider
+            Container(height: 1, color: Colors.grey.shade100),
+            
+            // Info Section
+            Expanded(
+              flex: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Product Name
+                    Text(
+                      name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.black87,
+                        height: 1.2,
                       ),
-                      
-                      // Discount Badge (top-left)
-                      if (discountPercent > 0)
-                        Positioned(
-                          top: 8,
-                          left: 8,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFFE53935), Color(0xFFff5722)],
-                              ),
-                              borderRadius: BorderRadius.circular(6),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.red.withOpacity(0.3),
-                                  blurRadius: 4,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: Text(
-                              '$discountPercent% OFF',
+                    ),
+                    
+                    // Price Section
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Main Price
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                              '₹${price.toStringAsFixed(0)}',
                               style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
+                                fontSize: 14,
                                 fontWeight: FontWeight.bold,
+                                color: Colors.black,
                               ),
                             ),
-                          ),
-                        ),
-                      
-                      // Wishlist Button (top-right)
-                      Positioned(
-                        top: 6,
-                        right: 6,
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: widget.onWishlistTap,
-                            borderRadius: BorderRadius.circular(20),
-                            child: Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.9),
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
-                                    blurRadius: 4,
-                                  ),
-                                ],
-                              ),
-                              child: Icon(
-                                widget.isInWishlist ? Iconsax.heart5 : Iconsax.heart,
-                                size: 18,
-                                color: widget.isInWishlist ? Colors.red : Colors.grey[600],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      
-                      // EMI Badge (bottom-left)
-                      Positioned(
-                        bottom: 8,
-                        left: 8,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [AppTheme.primaryColor, AppTheme.primaryLight],
-                            ),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Iconsax.card, size: 10, color: Colors.white),
+                            if (originalPrice > price) ...[
                               const SizedBox(width: 4),
-                              const Text(
-                                '0% EMI',
+                              Text(
+                                '₹${originalPrice.toStringAsFixed(0)}',
                                 style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.bold,
+                                  fontSize: 11,
+                                  color: Colors.grey[500],
+                                  decoration: TextDecoration.lineThrough,
                                 ),
                               ),
                             ],
-                          ),
+                          ],
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-                
-                // Content
-                Expanded(
-                  flex: 2,
-                  child: Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        // Product Name
-                        Text(
-                          widget.name,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: AppTheme.textPrimary,
-                            height: 1.2,
-                          ),
-                        ),
-                        
-                        // Price Section
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        const SizedBox(height: 3),
+                        // EMI Info - Flipkart style
+                        Row(
                           children: [
-                            // EMI Price
-                            Row(
-                              children: [
-                                Text(
-                                  '₹${widget.emiPerMonth.toStringAsFixed(0)}',
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppTheme.primaryColor,
-                                  ),
-                                ),
-                                const Text(
-                                  '/month',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: AppTheme.textSecondary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 2),
-                            // Prices
-                            Row(
-                              children: [
-                                Text(
-                                  '₹${widget.price.toStringAsFixed(0)}',
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppTheme.textPrimary,
-                                  ),
-                                ),
-                                if (widget.originalPrice > widget.price) ...[
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    '₹${widget.originalPrice.toStringAsFixed(0)}',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      color: Colors.grey[400],
-                                      decoration: TextDecoration.lineThrough,
-                                    ),
-                                  ),
-                                ],
-                              ],
+                            Icon(Icons.credit_card, size: 10, color: AppTheme.primaryColor),
+                            const SizedBox(width: 3),
+                            Text(
+                              'EMI from ₹${emiPerMonth.toStringAsFixed(0)}/mo',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: AppTheme.primaryColor,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           ],
                         ),
                       ],
                     ),
-                  ),
+                  ],
                 ),
-                
-                // Add to Cart Button
-                if (widget.onAddToCart != null)
-                  Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: AppTheme.primaryColor.withOpacity(0.1),
-                      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
-                    ),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: widget.onAddToCart,
-                        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Iconsax.shopping_cart, size: 14, color: AppTheme.primaryColor),
-                              const SizedBox(width: 6),
-                              Text(
-                                'Add to Cart',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppTheme.primaryColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );

@@ -473,7 +473,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 MaterialPageRoute(builder: (_) => ProductDetailScreen(product: product)),
               ),
               onAddToCart: () {
-                context.read<CartProvider>().addItem(product.id, product.name, product.offerPrice ?? product.price, product.primaryImage);
+                context.read<CartProvider>().addItem(product);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Row(
