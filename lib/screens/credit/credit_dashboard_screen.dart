@@ -484,7 +484,9 @@ class _MyEmisScreenState extends State<MyEmisScreen> with SingleTickerProviderSt
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: Colors.white,
-          tabs: const [
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white,
+          tabs: [
             Tab(text: 'Active'),
             Tab(text: 'Completed'),
             Tab(text: 'All'),

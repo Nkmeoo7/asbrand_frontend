@@ -476,7 +476,7 @@ void _navigateToSuccess(String orderId, double total) { // Add total as paramete
 
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
+      SnackBar(content: Text('Payment Window Closed'), backgroundColor: Colors.red),
     );
   }
 }

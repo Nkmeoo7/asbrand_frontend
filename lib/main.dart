@@ -1,3 +1,4 @@
+import 'package:asbrand_frontend/screens/credit/credit_dashboard_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'core/theme.dart';
@@ -64,7 +65,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           HomeScreen(),
           _PlaceholderScreen(title: 'Stores', icon: Icons.store),
           CategoriesScreen(),
-          _PlaceholderScreen(title: 'My EMIs', icon: Icons.calendar_month),
+          MyEmisScreen(),
           _WishlistScreen(),
         ],
       ),
