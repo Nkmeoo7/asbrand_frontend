@@ -427,7 +427,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           shippingAddress: shippingAddress,
           onSuccess: (orderId) {
             cart.clearCart();
-            _navigateToSuccess(orderId);
+            _navigateToSuccess(orderId, cart.totalAmount);
           },
           onError: (error) {
             _showError(error);
@@ -443,7 +443,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           paymentMethod: _paymentMethod,
           onSuccess: (orderId) {
             cart.clearCart();
-            _navigateToSuccess(orderId);
+            _navigateToSuccess(orderId, cart.totalAmount);
           },
           onError: (error) {
             _showError(error);
@@ -457,18 +457,22 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 
-  void _navigateToSuccess(String orderId) {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (_) => OrderConfirmationScreen(
-          orderId: orderId,
-          orderData: {'paymentMethod': _paymentMethod},
-          emiPlan: null,
-        ),
+void _navigateToSuccess(String orderId, double total) { // Add total as parameter
+  Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(
+      builder: (_) => OrderConfirmationScreen(
+        orderId: orderId,
+        orderData: {
+          'paymentMethod': _paymentMethod,
+          'totalAmount': total,
+          'downPayment': _paymentMethod == 'cod' ? 0 : total, // For non-EMI, downpayment is the total
+        },
+        emiPlan: null,
       ),
-    );
-  }
+    ),
+  );
+}
 
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(

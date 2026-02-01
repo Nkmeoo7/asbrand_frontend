@@ -28,8 +28,8 @@ class OrderConfirmationScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final totalAmount = (orderData['totalAmount'] as num).toDouble();
-    final downPayment = (orderData['downPayment'] as num).toDouble();
+    final totalAmount = (orderData['totalAmount'] ?? 0).toDouble();
+    final downPayment = (orderData['downPayment'] ?? 0).toDouble();
 
     return Scaffold(
       backgroundColor: AppTheme.scaffoldBackground,
