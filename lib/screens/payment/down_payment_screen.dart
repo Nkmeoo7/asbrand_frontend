@@ -5,7 +5,7 @@ import '../../core/theme.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../models/emi_plan.dart';
-import '../../services/api_service.dart';
+import '../../services/payment_service.dart';
 import 'order_confirmation_screen.dart';
 
 class DownPaymentScreen extends StatefulWidget {
@@ -26,18 +26,26 @@ class _DownPaymentScreenState extends State<DownPaymentScreen> {
   bool _isLoading = false;
   String _selectedPaymentMethod = 'upi';
   final _upiController = TextEditingController();
+  late PaymentService _paymentService;
 
-  // Down payment percentage (10-25%)
-  double get downPaymentPercentage => 0.10; // 10%
+  // Down payment percentage (10%)
+  double get downPaymentPercentage => 0.10;
 
-  String _formatCurrency(double amount) {
-    return '₹${amount.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}';
+  @override
+  void initState() {
+    super.initState();
+    _paymentService = PaymentService();
   }
 
   @override
   void dispose() {
     _upiController.dispose();
+    _paymentService.dispose();
     super.dispose();
+  }
+
+  String _formatCurrency(double amount) {
+    return '₹${amount.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}';
   }
 
   @override
@@ -59,19 +67,14 @@ class _DownPaymentScreenState extends State<DownPaymentScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Order Summary
             _buildOrderSummary(cart, subtotal, downPayment, loanAmount, processingFee, monthlyEmi),
             const SizedBox(height: 16),
-
-            // Payment Method Selection
             _buildPaymentMethods(),
             const SizedBox(height: 16),
-
-            // Payment Details
             if (_selectedPaymentMethod == 'upi') _buildUpiSection(),
             if (_selectedPaymentMethod == 'card') _buildCardSection(),
             if (_selectedPaymentMethod == 'netbanking') _buildNetbankingSection(),
-
+            if (_selectedPaymentMethod == 'cod') _buildCodSection(),
             const SizedBox(height: 100),
           ],
         ),
@@ -107,8 +110,6 @@ class _DownPaymentScreenState extends State<DownPaymentScreen> {
             ],
           ),
           const Divider(height: 24),
-
-          // Items
           ...cart.items.map((item) => Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: Row(
@@ -119,14 +120,10 @@ class _DownPaymentScreenState extends State<DownPaymentScreen> {
               ],
             ),
           )),
-
           const Divider(height: 24),
-
-          // Breakdown
           _buildSummaryRow('Subtotal', _formatCurrency(subtotal)),
           if (widget.selectedPlan != null) ...[
-            _buildSummaryRow('Down Payment (${(downPaymentPercentage * 100).toInt()}%)', _formatCurrency(downPayment), 
-                highlight: true),
+            _buildSummaryRow('Down Payment (${(downPaymentPercentage * 100).toInt()}%)', _formatCurrency(downPayment), highlight: true),
             _buildSummaryRow('Loan Amount', _formatCurrency(loanAmount)),
             _buildSummaryRow('Processing Fee', _formatCurrency(processingFee)),
             _buildSummaryRow('Interest', '₹0 (0%)', valueColor: Colors.green),
@@ -134,10 +131,7 @@ class _DownPaymentScreenState extends State<DownPaymentScreen> {
             _buildSummaryRow('Monthly EMI', '${_formatCurrency(monthlyEmi)} x ${widget.selectedPlan!.tenure}',
                 isBold: true, valueColor: AppTheme.primaryColor),
           ],
-
           const Divider(height: 24),
-
-          // Total Due Now
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -147,10 +141,11 @@ class _DownPaymentScreenState extends State<DownPaymentScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Pay Now', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                Text(_selectedPaymentMethod == 'cod' ? 'Total (Pay on Delivery)' : 'Pay Now',
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 Text(
-                  _formatCurrency(widget.selectedPlan != null ? downPayment : subtotal),
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.primaryColor),
+                  _formatCurrency(widget.selectedPlan != null ? downPayment : context.read<CartProvider>().totalAmount),
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppTheme.primaryColor),
                 ),
               ],
             ),
@@ -193,10 +188,10 @@ class _DownPaymentScreenState extends State<DownPaymentScreen> {
         children: [
           const Text('Payment Method', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
-
           _buildPaymentOption('upi', Iconsax.mobile, 'UPI', 'Google Pay, PhonePe, Paytm'),
           _buildPaymentOption('card', Iconsax.card, 'Credit/Debit Card', 'Visa, Mastercard, Rupay'),
           _buildPaymentOption('netbanking', Iconsax.bank, 'Net Banking', 'All major banks'),
+          _buildPaymentOption('cod', Iconsax.money, 'Cash on Delivery', 'Pay when you receive'),
         ],
       ),
     );
@@ -260,20 +255,18 @@ class _DownPaymentScreenState extends State<DownPaymentScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Enter UPI ID', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _upiController,
-            decoration: InputDecoration(
-              hintText: 'yourname@upi',
-              prefixIcon: const Icon(Iconsax.mobile),
-              filled: true,
-              fillColor: Colors.grey.shade50,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-            ),
+          Row(
+            children: [
+              Icon(Iconsax.info_circle, color: AppTheme.primaryColor, size: 20),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text(
+                  'Razorpay will open with all UPI options',
+                  style: TextStyle(color: Colors.grey, fontSize: 13),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
-          const Text('Popular UPI Apps', style: TextStyle(fontWeight: FontWeight.w500)),
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -316,45 +309,15 @@ class _DownPaymentScreenState extends State<DownPaymentScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          const Text('Card Details', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 16),
-          TextFormField(
-            decoration: InputDecoration(
-              hintText: 'Card Number',
-              prefixIcon: const Icon(Iconsax.card),
-              filled: true,
-              fillColor: Colors.grey.shade50,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+          Icon(Iconsax.info_circle, color: AppTheme.primaryColor, size: 20),
+          const SizedBox(width: 8),
+          const Expanded(
+            child: Text(
+              'Card details will be securely entered in Razorpay checkout',
+              style: TextStyle(color: Colors.grey, fontSize: 13),
             ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: TextFormField(
-                  decoration: InputDecoration(
-                    hintText: 'MM/YY',
-                    filled: true,
-                    fillColor: Colors.grey.shade50,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: TextFormField(
-                  decoration: InputDecoration(
-                    hintText: 'CVV',
-                    filled: true,
-                    fillColor: Colors.grey.shade50,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                  ),
-                ),
-              ),
-            ],
           ),
         ],
       ),
@@ -362,7 +325,6 @@ class _DownPaymentScreenState extends State<DownPaymentScreen> {
   }
 
   Widget _buildNetbankingSection() {
-    final banks = ['HDFC', 'ICICI', 'SBI', 'Axis', 'Kotak', 'PNB'];
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(20),
@@ -371,27 +333,14 @@ class _DownPaymentScreenState extends State<DownPaymentScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          const Text('Select Bank', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 16),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
-              childAspectRatio: 2,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-            ),
-            itemCount: banks.length,
-            itemBuilder: (context, index) => Container(
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey.shade300),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Center(child: Text(banks[index], style: const TextStyle(fontWeight: FontWeight.w500))),
+          Icon(Iconsax.info_circle, color: AppTheme.primaryColor, size: 20),
+          const SizedBox(width: 8),
+          const Expanded(
+            child: Text(
+              'All banks will be available in Razorpay checkout',
+              style: TextStyle(color: Colors.grey, fontSize: 13),
             ),
           ),
         ],
@@ -399,7 +348,42 @@ class _DownPaymentScreenState extends State<DownPaymentScreen> {
     );
   }
 
-  Widget _buildPayButton(double amount) {
+  Widget _buildCodSection() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
+      ),
+      child: Row(
+        children: [
+          Icon(Iconsax.truck, color: Colors.orange, size: 24),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Cash on Delivery', style: TextStyle(fontWeight: FontWeight.bold)),
+                SizedBox(height: 4),
+                Text(
+                  'Pay with cash when your order arrives. No online payment required.',
+                  style: TextStyle(color: Colors.grey, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPayButton(double downPayment) {
+    final cart = context.read<CartProvider>();
+    final payAmount = widget.selectedPlan != null ? downPayment : cart.totalAmount;
+    final isCod = _selectedPaymentMethod == 'cod';
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -409,14 +393,14 @@ class _DownPaymentScreenState extends State<DownPaymentScreen> {
       child: ElevatedButton(
         onPressed: _isLoading ? null : _processPayment,
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppTheme.primaryColor,
+          backgroundColor: isCod ? Colors.orange : AppTheme.primaryColor,
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
         child: _isLoading
             ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
             : Text(
-                'Pay ${_formatCurrency(widget.selectedPlan != null ? amount : context.read<CartProvider>().totalAmount)}',
+                isCod ? 'Place Order (COD)' : 'Pay ${_formatCurrency(payAmount)}',
                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
               ),
       ),
@@ -427,64 +411,74 @@ class _DownPaymentScreenState extends State<DownPaymentScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // Simulate payment processing
-      await Future.delayed(const Duration(seconds: 2));
-
       final cart = context.read<CartProvider>();
-      final auth = context.read<AuthProvider>();
-      final subtotal = cart.totalAmount;
-      final downPayment = subtotal * downPaymentPercentage;
 
-      // Create order
-      final orderData = {
-        'userId': auth.user?.id ?? '',
-        'items': cart.items.map((item) => {
-          'productId': item.product.id,
-          'quantity': item.quantity,
-          'price': item.product.offerPrice ?? item.product.price,
-        }).toList(),
-        'totalAmount': subtotal,
-        'shippingAddress': widget.shippingAddress,
-        'paymentMethod': _selectedPaymentMethod,
-        'paymentStatus': 'completed',
-        'downPayment': widget.selectedPlan != null ? downPayment : subtotal,
-        'emiPlanId': widget.selectedPlan?.id,
-      };
+      // Prepare items for backend
+      final items = cart.items.map((item) => {
+        'productID': item.product.id,
+        'productName': item.product.name,
+        'quantity': item.quantity,
+        'price': item.product.offerPrice ?? item.product.price,
+      }).toList();
 
-      final response = await ApiService().createOrder(orderData);
-
-      if (mounted) {
-        if (response['success'] == true) {
-          // Clear cart
-          cart.clearCart();
-
-          // Navigate to confirmation
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (_) => OrderConfirmationScreen(
-                orderId: response['data']['_id'],
-                orderData: orderData,
-                emiPlan: widget.selectedPlan,
-              ),
-            ),
-          );
-        } else {
-          _showError(response['message'] ?? 'Payment failed');
-        }
+      if (_selectedPaymentMethod == 'cod') {
+        // COD Flow - No Razorpay
+        await _paymentService.placeCodOrder(
+          items: items,
+          shippingAddress: widget.shippingAddress,
+          onSuccess: (orderId) {
+            cart.clearCart();
+            _navigateToSuccess(orderId);
+          },
+          onError: (error) {
+            _showError(error);
+            setState(() => _isLoading = false);
+          },
+        );
+      } else {
+        // Online Payment - Razorpay
+        await _paymentService.initiatePayment(
+          context: context,
+          items: items,
+          shippingAddress: widget.shippingAddress,
+          paymentMethod: _selectedPaymentMethod,
+          onSuccess: (orderId) {
+            cart.clearCart();
+            _navigateToSuccess(orderId);
+          },
+          onError: (error) {
+            _showError(error);
+            setState(() => _isLoading = false);
+          },
+        );
       }
     } catch (e) {
-      if (mounted) {
-        _showError('Payment failed: $e');
-      }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
+      _showError('Payment failed: $e');
+      setState(() => _isLoading = false);
     }
   }
 
-  void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
+  void _navigateToSuccess(String orderId) {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) => OrderConfirmationScreen(
+          orderId: orderId,
+          orderData: {
+            'paymentMethod': _selectedPaymentMethod,
+            'shippingAddress': widget.shippingAddress,
+          },
+          emiPlan: widget.selectedPlan,
+        ),
+      ),
     );
+  }
+
+  void _showError(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message), backgroundColor: Colors.red),
+      );
+    }
   }
 }
