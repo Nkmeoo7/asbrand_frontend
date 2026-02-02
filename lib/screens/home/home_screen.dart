@@ -11,6 +11,7 @@ import '../../widgets/category_chip.dart';
 import '../../widgets/shimmer_loading.dart';
 import '../../models/category.dart';
 import '../../models/product.dart';
+import '../../widgets/filter_bottom_sheet.dart';
 import '../product/product_detail_screen.dart';
 import '../auth/login_screen.dart';
 import '../cart/cart_screen.dart';
@@ -40,23 +41,16 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  List<Product> _getFilteredProducts(List<Product> products) {
-    var filtered = products;
-    
-    // Filter by search query
-    if (_searchQuery.isNotEmpty) {
-      filtered = filtered.where((p) => 
-        p.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-        (p.description?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false)
-      ).toList();
-    }
-    
-    // Filter by category
-    if (_selectedCategoryId != null) {
-      filtered = filtered.where((p) => p.category?.id == _selectedCategoryId).toList();
-    }
-    
-    return filtered;
+  @override
+  void initState() {
+    super.initState();
+    // Ensure data is loaded
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (context.read<ProductProvider>().products.isEmpty) {
+        context.read<ProductProvider>().fetchProducts();
+        context.read<CategoryProvider>().fetchAllData();
+      }
+    });
   }
 
   @override
@@ -129,7 +123,8 @@ class _HomeScreenState extends State<HomeScreen> {
             );
           }
 
-          final filteredProducts = _getFilteredProducts(productProvider.products);
+          // Products are now filtered in the backend
+          final productList = productProvider.products;
 
           return RefreshIndicator(
             onRefresh: () async {
@@ -144,10 +139,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   _buildSearchBar(),
                   _buildCategoryChips(categoryProvider.categories),
                   
-                  // Show search results if searching
+                  // Show search results if searching (using provider state check could be better, but query string works)
                   if (_searchQuery.isNotEmpty) ...[
-                    _buildSectionHeader('Search Results (${filteredProducts.length})', onViewAll: () => setState(() => _searchQuery = '')),
-                    _buildProductGrid(filteredProducts),
+                    _buildSectionHeader('Search Results (${productList.length})', onViewAll: () => setState(() => _searchQuery = '')),
+                    _buildProductGrid(productList),
                   ] else ...[
                     _buildPromoBanner(categoryProvider.posters),
                     // Credit limit card removed - moved to profile button in app bar
@@ -199,25 +194,46 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
         ),
-        // Profile Button
+        // Profile / Login Button
         Consumer<AuthProvider>(
-          builder: (context, auth, _) => GestureDetector(
-            onTap: () => _showAuthOrProfile(context),
-            child: Container(
-              margin: const EdgeInsets.only(right: 12),
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: auth.isAuthenticated ? AppTheme.primaryColor : Colors.white,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                auth.isAuthenticated ? Iconsax.user : Iconsax.profile_add,
-                size: 18,
-                color: auth.isAuthenticated ? Colors.white : AppTheme.primaryColor,
-              ),
-            ),
-          ),
+          builder: (context, auth, _) {
+             if (auth.isAuthenticated) {
+               return GestureDetector(
+                onTap: () => _showAuthOrProfile(context),
+                child: Container(
+                  margin: const EdgeInsets.only(right: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2), // Glassy effect
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.white.withOpacity(0.5)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Iconsax.user, size: 18, color: Colors.white),
+                      const SizedBox(width: 4),
+                      Text(auth.user?.name.split(' ')[0] ?? 'User', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ),
+              );
+             } else {
+               return Padding(
+                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                 child: ElevatedButton(
+                   onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen())),
+                   style: ElevatedButton.styleFrom(
+                     backgroundColor: Colors.white,
+                     foregroundColor: AppTheme.primaryColor,
+                     elevation: 0,
+                     padding: const EdgeInsets.symmetric(horizontal: 16),
+                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)), // Flipkart style sharp login
+                   ),
+                   child: const Text('Login', style: TextStyle(fontWeight: FontWeight.bold)),
+                 ),
+               );
+             }
+          },
         ),
       ],
     );
@@ -283,15 +299,36 @@ class _HomeScreenState extends State<HomeScreen> {
           hintText: 'Search for products, brands & more...',
           hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
           prefixIcon: Icon(Iconsax.search_normal_1, color: AppTheme.primaryColor, size: 22),
-          suffixIcon: _searchQuery.isNotEmpty
-              ? IconButton(
+          onSubmitted: (value) => context.read<ProductProvider>().setSearch(value),
+          suffixIcon: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (_searchQuery.isNotEmpty)
+                IconButton(
                   icon: Icon(Iconsax.close_circle, color: Colors.grey.shade400),
                   onPressed: () {
                     _searchController.clear();
                     setState(() => _searchQuery = '');
+                    context.read<ProductProvider>().setSearch('');
                   },
-                )
-              : Icon(Iconsax.microphone, color: Colors.grey.shade400, size: 22),
+                ),
+              // Filter Button
+              Container(
+                margin: const EdgeInsets.only(right: 8),
+                child: IconButton(
+                  icon: const Icon(Iconsax.setting_4, color: AppTheme.primaryColor),
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (context) => const FilterBottomSheet(),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           border: InputBorder.none,
           filled: false,

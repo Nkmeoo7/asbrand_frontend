@@ -96,8 +96,13 @@ class ApiService {
   // PRODUCT ENDPOINTS
   // ============================================================
 
-  Future<List<Product>> getProducts() async {
-    final response = await get(ApiConstants.products);
+  Future<List<Product>> getProducts({Map<String, dynamic>? params}) async {
+    String endpoint = ApiConstants.products;
+    if (params != null && params.isNotEmpty) {
+      final uri = Uri.parse(endpoint).replace(queryParameters: params);
+      endpoint = uri.toString();
+    }
+    final response = await get(endpoint);
     if (response['success'] == true && response['data'] != null) {
       return (response['data'] as List)
           .map((json) => Product.fromJson(json))
