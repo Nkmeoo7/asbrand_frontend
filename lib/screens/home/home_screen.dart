@@ -26,6 +26,7 @@ import '../wishlist/wishlist_screen.dart';
 import '../orders/my_orders_screen.dart';
 import '../contact/contact_screen.dart';
 import '../categories/category_products_screen.dart';
+import '../product/all_products_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -149,11 +150,35 @@ class _HomeScreenState extends State<HomeScreen> {
                     _buildProductGrid(productList),
                   ] else ...[
                     _buildPromoBanner(categoryProvider.posters),
+                    // Second promotional banner
+                    _buildSecondPromoBanner(),
                     // Credit limit card removed - moved to profile button in app bar
-                    _buildSectionHeader('Best Sellers', onViewAll: () {}),
+                    _buildSectionHeader('Best Sellers', onViewAll: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const AllProductsScreen(type: ProductListType.bestSellers),
+                        ),
+                      );
+                    }),
                     _buildProductGrid(productProvider.bestSellers),
+                    const SizedBox(height: 16),
+                    // Offer Banner - Free Shipping
+                    _buildOfferBanner(
+                      title: 'FREE SHIPPING',
+                      subtitle: 'On orders above ₹499',
+                      icon: Iconsax.box_1,
+                      gradient: const [Color(0xFF667EEA), Color(0xFF764BA2)],
+                    ),
                     const SizedBox(height: 20),
-                    _buildSectionHeader('Deals', onViewAll: () {}),
+                    _buildSectionHeader('Deals', onViewAll: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const AllProductsScreen(type: ProductListType.deals),
+                        ),
+                      );
+                    }),
                     _buildProductGrid(productProvider.deals.isEmpty ? productProvider.products.take(10).toList() : productProvider.deals),
                   ],
                   const SizedBox(height: 80),
@@ -405,6 +430,154 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSecondPromoBanner() {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      height: 120,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        gradient: const LinearGradient(
+          colors: [Color(0xFFFF6B6B), Color(0xFFFF8E53)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFFF6B6B).withOpacity(0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          // Background pattern
+          Positioned(
+            right: -20,
+            bottom: -20,
+            child: Icon(
+              Iconsax.discount_shape,
+              size: 120,
+              color: Colors.white.withOpacity(0.15),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'MEGA SALE',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Up to 70% Off on Electronics',
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.9),
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Text(
+                    'Shop Now',
+                    style: TextStyle(
+                      color: Color(0xFFFF6B6B),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOfferBanner({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required List<Color> gradient,
+  }) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        gradient: LinearGradient(
+          colors: gradient,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: gradient.first.withOpacity(0.4),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: Colors.white, size: 28),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.9),
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Icon(Iconsax.arrow_right_3, color: Colors.white.withOpacity(0.8), size: 20),
         ],
       ),
     );

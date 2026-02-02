@@ -349,7 +349,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
             IconButton(
               icon: Icon(Iconsax.trash, color: Colors.red.shade300, size: 20),
-              onPressed: () => provider.removeAddress(address.id),
+              onPressed: () => provider.deleteAddress(address.id),
             ),
           ],
         ),

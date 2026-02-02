@@ -13,6 +13,7 @@ import 'screens/categories/categories_screen.dart';
 import 'screens/cart/cart_screen.dart';
 import 'screens/wishlist/wishlist_screen.dart';
 import 'screens/orders/my_orders_screen.dart';
+import 'screens/stores/stores_screen.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 
 void main() {
@@ -70,7 +71,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         index: _currentIndex,
         children: const [
           HomeScreen(),
-          _PlaceholderScreen(title: 'Stores', icon: Icons.store),
+          StoresScreen(),
           CategoriesScreen(),
           MyOrdersScreen(),
           WishlistScreen(),

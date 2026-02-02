@@ -10,14 +10,19 @@ class MyOrdersScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final canPop = Navigator.canPop(context);
+    
     return Scaffold(
       backgroundColor: AppTheme.scaffoldBackground,
       appBar: AppBar(
         title: const Text('My Orders'),
-        leading: IconButton(
-          icon: const Icon(Iconsax.arrow_left),
-          onPressed: () => Navigator.pop(context),
-        ),
+        automaticallyImplyLeading: canPop,
+        leading: canPop
+            ? IconButton(
+                icon: const Icon(Iconsax.arrow_left),
+                onPressed: () => Navigator.pop(context),
+              )
+            : null,
       ),
       body: Consumer<AuthProvider>(
         builder: (context, auth, _) {
@@ -30,10 +35,11 @@ class MyOrdersScreen extends StatelessWidget {
                   const SizedBox(height: 16),
                   const Text('Please login to view your orders'),
                   const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('Go Back'),
-                  ),
+                  if (canPop)
+                    ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Go Back'),
+                    ),
                 ],
               ),
             );
@@ -61,9 +67,9 @@ class MyOrdersScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton.icon(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: canPop ? () => Navigator.pop(context) : null,
                   icon: const Icon(Iconsax.shop),
-                  label: const Text('Start Shopping'),
+                  label: Text(canPop ? 'Start Shopping' : 'Browse Products'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primaryColor,
                     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),

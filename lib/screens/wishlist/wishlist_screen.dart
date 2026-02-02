@@ -12,14 +12,19 @@ class WishlistScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final canPop = Navigator.canPop(context);
+    
     return Scaffold(
       backgroundColor: AppTheme.scaffoldBackground,
       appBar: AppBar(
         title: const Text('My Wishlist'),
-        leading: IconButton(
-          icon: const Icon(Iconsax.arrow_left),
-          onPressed: () => Navigator.pop(context),
-        ),
+        automaticallyImplyLeading: canPop,
+        leading: canPop
+            ? IconButton(
+                icon: const Icon(Iconsax.arrow_left),
+                onPressed: () => Navigator.pop(context),
+              )
+            : null,
         actions: [
           Consumer<WishlistProvider>(
             builder: (context, wishlist, _) {

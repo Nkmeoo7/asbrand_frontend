@@ -67,6 +67,9 @@ class AddressProvider extends ChangeNotifier {
   final List<Address> _addresses = [];
   String? _selectedAddressId;
   bool _isLoaded = false;
+  bool _isLoading = false;
+
+  bool get isLoading => _isLoading;
 
   final ApiService _apiService = ApiService();
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
@@ -91,6 +94,125 @@ class AddressProvider extends ChangeNotifier {
     }
   }
 
+  /// Load addresses (wrapper for fetches)
+  Future<void> loadAddresses() async {
+    _isLoading = true;
+    notifyListeners();
+    await fetchAddressesFromBackend();
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  /// Update an address
+  Future<void> updateAddress(
+    String addressId, {
+    required String phone,
+    required String street,
+    required String city,
+    required String state,
+    required String pincode,
+    required bool isDefault,
+  }) async {
+    _isLoading = true;
+    notifyListeners();
+    
+    try {
+      final updateData = {
+        'phone': phone,
+        'street': street,
+        'city': city,
+        'state': state,
+        'pincode': pincode,
+        'isDefault': isDefault,
+      };
+
+      // Optimistic update
+      final index = _addresses.indexWhere((a) => a.id == addressId);
+      if (index != -1) {
+        _addresses[index] = Address(
+          id: addressId,
+          phone: phone,
+          street: street,
+          city: city,
+          state: state,
+          pincode: pincode,
+          isDefault: isDefault,
+        );
+        notifyListeners();
+      }
+
+      await _apiService.put('${ApiConstants.address}/$addressId', updateData);
+      
+      // If setting default, might need to refresh all to ensure only one default
+      if (isDefault) {
+        // Update local others to false - purely in-memory optimistically
+        for (var i = 0; i < _addresses.length; i++) {
+          if (_addresses[i].id != addressId && _addresses[i].isDefault) {
+             // We'd need copyWith but for now we rely on backend refresh for full consistency
+             // Or recreate the object
+             final addr = _addresses[i];
+             _addresses[i] = Address(
+                id: addr.id,
+                phone: addr.phone,
+                street: addr.street,
+                city: addr.city,
+                state: addr.state,
+                pincode: addr.pincode,
+                isDefault: false
+             );
+          }
+        }
+        await fetchAddressesFromBackend();
+      }
+    } catch (e) {
+      debugPrint('Error updating address: $e');
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Delete an address
+  Future<void> deleteAddress(String addressId) async {
+    _isLoading = true;
+    notifyListeners();
+    
+    try {
+      // Optimistic
+      _addresses.removeWhere((a) => a.id == addressId);
+      if (_selectedAddressId == addressId) _selectedAddressId = null;
+      notifyListeners();
+
+      await _apiService.delete('${ApiConstants.address}/$addressId');
+    } catch (e) {
+      debugPrint('Error deleting address: $e');
+      // Re-fetch if error
+      await fetchAddressesFromBackend();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Set default address
+  Future<void> setDefaultAddress(String addressId) async {
+     try {
+       final addr = _addresses.firstWhere((a) => a.id == addressId);
+       await updateAddress(
+         addressId, 
+         phone: addr.phone,
+         street: addr.street,
+         city: addr.city,
+         state: addr.state,
+         pincode: addr.pincode,
+         isDefault: true
+       );
+     } catch (e) {
+       debugPrint('Error setting default address: $e');
+     }
+  }
+
   /// Fetch from backend
   Future<void> fetchAddressesFromBackend() async {
     if (!(await _isLoggedIn)) return;
@@ -107,7 +229,10 @@ class AddressProvider extends ChangeNotifier {
         // Update selected based on default
         if (_addresses.isNotEmpty) {
            final defaultAddr = _addresses.firstWhere((a) => a.isDefault, orElse: () => _addresses.first);
-           _selectedAddressId = defaultAddr.id;
+           // Only set if not already set or invalid
+           if (_selectedAddressId == null || !_addresses.any((a) => a.id == _selectedAddressId)) {
+              _selectedAddressId = defaultAddr.id;
+           }
         }
 
         _saveToStorage();
@@ -180,54 +305,6 @@ class AddressProvider extends ChangeNotifier {
     _selectedAddressId = id;
     _saveToStorage();
     notifyListeners();
-  }
-
-  /// Remove address
-  Future<void> removeAddress(String id) async {
-    _addresses.removeWhere((a) => a.id == id);
-    if (_selectedAddressId == id) {
-      _selectedAddressId = _addresses.isNotEmpty ? _addresses.first.id : null;
-    }
-    _saveToStorage();
-    notifyListeners();
-
-    // Backend update
-    if (await _isLoggedIn) {
-      try {
-        await _apiService.delete('${ApiConstants.address}/remove/$id');
-      } catch (e) {
-        debugPrint('Error removing address from backend: $e');
-      }
-    }
-  }
-
-  /// Set default address
-  Future<void> setDefaultAddress(String id) async {
-    for (int i = 0; i < _addresses.length; i++) {
-      final addr = _addresses[i];
-      _addresses[i] = Address(
-        id: addr.id,
-        phone: addr.phone,
-        street: addr.street,
-        city: addr.city,
-        state: addr.state,
-        pincode: addr.pincode,
-        isDefault: addr.id == id,
-      );
-    }
-    _saveToStorage();
-    notifyListeners();
-
-    // Backend update
-    if (await _isLoggedIn) {
-       // We can trigger an update on the specific ID to set as default
-       try {
-         await _apiService.put('${ApiConstants.address}/update/$id', {'isDefault': true});
-         await fetchAddressesFromBackend();
-       } catch (e) {
-         debugPrint('Error setting default address: $e');
-       }
-    }
   }
 
   /// Clear all addresses

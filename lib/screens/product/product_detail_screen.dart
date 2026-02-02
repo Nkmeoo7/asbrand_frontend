@@ -10,6 +10,7 @@ import '../cart/cart_screen.dart';
 import '../auth/login_screen.dart';
 import '../checkout/checkout_screen.dart';
 import '../../providers/auth_provider.dart';
+import '../../widgets/similar_products_section.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final Product product;
@@ -162,6 +163,20 @@ Download AsBrand app to shop with easy EMI options!
                   ],
                 ),
               ),
+            
+            // Frequently Bought Together Section
+            SimilarProductsSection(
+              currentProduct: product,
+              title: 'Frequently Bought Together',
+              showFrequentlyBought: true,
+            ),
+
+            // Similar Products Section  
+            SimilarProductsSection(
+              currentProduct: product,
+              title: 'Similar Products',
+              showFrequentlyBought: false,
+            ),
             
             const SizedBox(height: 100), // Space for bottom bar
           ],

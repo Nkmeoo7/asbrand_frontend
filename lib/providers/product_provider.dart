@@ -112,4 +112,41 @@ class ProductProvider extends ChangeNotifier {
   List<Product> get deals {
     return _products.where((p) => p.offerPrice != null && p.offerPrice! < p.price).toList();
   }
+
+  /// Get similar products by category and subcategory
+  /// Excludes the current product from results
+  List<Product> getSimilarProducts(String? categoryId, String? subCategoryId, String excludeProductId) {
+    if (categoryId == null) return [];
+    
+    // First try to match both category and subcategory
+    var similar = _products.where((p) =>
+      p.id != excludeProductId &&
+      p.category?.id == categoryId &&
+      (subCategoryId == null || p.subCategory?.id == subCategoryId)
+    ).toList();
+    
+    // If not enough products, just match category
+    if (similar.length < 4) {
+      similar = _products.where((p) =>
+        p.id != excludeProductId &&
+        p.category?.id == categoryId
+      ).toList();
+    }
+    
+    return similar.take(10).toList();
+  }
+
+  /// Get frequently bought together products (simulated)
+  /// Returns products from same category with similar price range
+  List<Product> getFrequentlyBoughtTogether(Product product) {
+    final priceRange = product.price * 0.5; // Within 50% price range
+    final targetPrice = product.offerPrice ?? product.price;
+    
+    return _products.where((p) =>
+      p.id != product.id &&
+      p.category?.id == product.category?.id &&
+      (p.offerPrice ?? p.price) >= targetPrice - priceRange &&
+      (p.offerPrice ?? p.price) <= targetPrice + priceRange
+    ).take(4).toList();
+  }
 }
