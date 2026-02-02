@@ -51,18 +51,32 @@ class Product {
     }
 
     return Product(
-      id: json['_id'] ?? '',
+      id: json['_id'] ?? json['id'] ?? '',
       name: json['name'] ?? '',
       description: json['description']?.toString(),
       quantity: json['quantity'] ?? 0,
       price: (json['price'] ?? 0).toDouble(),
       offerPrice: json['offerPrice'] != null ? (json['offerPrice']).toDouble() : null,
       images: imageList,
-      category: json['proCategoryId'] is Map ? CategoryRef.fromJson(json['proCategoryId']) : null,
+      category: json['proCategoryId'] is Map ? CategoryRef.fromJson(json['proCategoryId']) : (json['category'] is Map ? CategoryRef.fromJson(json['category']) : null),
       subCategory: json['proSubCategoryId'] is Map ? CategoryRef.fromJson(json['proSubCategoryId']) : null,
       brand: json['proBrandId'] is Map ? CategoryRef.fromJson(json['proBrandId']) : null,
     );
   }
+
+  /// Convert to JSON for storage
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'description': description,
+    'quantity': quantity,
+    'price': price,
+    'offerPrice': offerPrice,
+    'images': images,
+    'category': category?.toJson(),
+    'subCategory': subCategory?.toJson(),
+    'brand': brand?.toJson(),
+  };
 
   // Calculate EMI per month (for display like AsBrand)
   double get emiPerMonth => (offerPrice ?? price) / 12;
@@ -89,4 +103,9 @@ class CategoryRef {
       name: json['name'] ?? '',
     );
   }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+  };
 }

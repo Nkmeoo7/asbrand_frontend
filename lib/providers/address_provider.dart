@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Address model
 class Address {
@@ -22,7 +24,7 @@ class Address {
 
   String get fullAddress => '$street, $city, $state - $pincode';
   
-  Map<String, dynamic> toMap() => {
+  Map<String, dynamic> toJson() => {
     'id': id,
     'phone': phone,
     'street': street,
@@ -32,7 +34,7 @@ class Address {
     'isDefault': isDefault,
   };
 
-  factory Address.fromMap(Map<String, dynamic> map) => Address(
+  factory Address.fromJson(Map<String, dynamic> map) => Address(
     id: map['id'] ?? '',
     phone: map['phone'] ?? '',
     street: map['street'] ?? '',
@@ -43,10 +45,18 @@ class Address {
   );
 }
 
-/// Manages saved addresses
+/// Manages saved addresses with persistence
 class AddressProvider extends ChangeNotifier {
+  static const String _storageKey = 'saved_addresses';
+  static const String _selectedKey = 'selected_address_id';
+  
   final List<Address> _addresses = [];
   String? _selectedAddressId;
+  bool _isLoaded = false;
+
+  AddressProvider() {
+    _loadFromStorage();
+  }
 
   /// Get all addresses
   List<Address> get addresses => List.unmodifiable(_addresses);
@@ -81,12 +91,14 @@ class AddressProvider extends ChangeNotifier {
     } else {
       _addresses.add(address);
     }
+    _saveToStorage();
     notifyListeners();
   }
 
   /// Select address
   void selectAddress(String id) {
     _selectedAddressId = id;
+    _saveToStorage();
     notifyListeners();
   }
 
@@ -96,6 +108,7 @@ class AddressProvider extends ChangeNotifier {
     if (_selectedAddressId == id) {
       _selectedAddressId = _addresses.isNotEmpty ? _addresses.first.id : null;
     }
+    _saveToStorage();
     notifyListeners();
   }
 
@@ -113,6 +126,7 @@ class AddressProvider extends ChangeNotifier {
         isDefault: addr.id == id,
       );
     }
+    _saveToStorage();
     notifyListeners();
   }
 
@@ -120,6 +134,47 @@ class AddressProvider extends ChangeNotifier {
   void clearAddresses() {
     _addresses.clear();
     _selectedAddressId = null;
+    _saveToStorage();
     notifyListeners();
+  }
+
+  /// Load addresses from SharedPreferences
+  Future<void> _loadFromStorage() async {
+    if (_isLoaded) return;
+    
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String? jsonString = prefs.getString(_storageKey);
+      _selectedAddressId = prefs.getString(_selectedKey);
+      
+      if (jsonString != null && jsonString.isNotEmpty) {
+        final List<dynamic> jsonList = json.decode(jsonString);
+        _addresses.clear();
+        for (var item in jsonList) {
+          _addresses.add(Address.fromJson(item));
+        }
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('Error loading addresses: $e');
+    }
+    
+    _isLoaded = true;
+  }
+
+  /// Save addresses to SharedPreferences
+  Future<void> _saveToStorage() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final List<Map<String, dynamic>> jsonList = _addresses.map((a) => a.toJson()).toList();
+      await prefs.setString(_storageKey, json.encode(jsonList));
+      if (_selectedAddressId != null) {
+        await prefs.setString(_selectedKey, _selectedAddressId!);
+      } else {
+        await prefs.remove(_selectedKey);
+      }
+    } catch (e) {
+      debugPrint('Error saving addresses: $e');
+    }
   }
 }
