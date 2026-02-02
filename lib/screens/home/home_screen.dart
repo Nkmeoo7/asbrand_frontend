@@ -27,6 +27,7 @@ import '../orders/my_orders_screen.dart';
 import '../contact/contact_screen.dart';
 import '../categories/category_products_screen.dart';
 import '../product/all_products_screen.dart';
+import '../../widgets/premium_drawer.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -63,7 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: AppTheme.scaffoldBackground,
       appBar: _buildAppBar(context),
-      drawer: _buildDrawer(context),
+      drawer: const PremiumDrawer(),
       body: Consumer2<ProductProvider, CategoryProvider>(
         builder: (context, productProvider, categoryProvider, _) {
           if (productProvider.isLoading || categoryProvider.isLoading) {
@@ -149,9 +150,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     _buildSectionHeader('Search Results (${productList.length})', onViewAll: () => setState(() => _searchQuery = '')),
                     _buildProductGrid(productList),
                   ] else ...[
-                    _buildPromoBanner(categoryProvider.posters),
-                    // Second promotional banner
-                    _buildSecondPromoBanner(),
+                    // 4 Sale Banners in horizontal scroll
+                    _buildSaleBannersSection(),
                     // Credit limit card removed - moved to profile button in app bar
                     _buildSectionHeader('Best Sellers', onViewAll: () {
                       Navigator.push(
@@ -162,14 +162,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                     }),
                     _buildProductGrid(productProvider.bestSellers),
-                    const SizedBox(height: 16),
-                    // Offer Banner - Free Shipping
-                    _buildOfferBanner(
-                      title: 'FREE SHIPPING',
-                      subtitle: 'On orders above ₹499',
-                      icon: Iconsax.box_1,
-                      gradient: const [Color(0xFF667EEA), Color(0xFF764BA2)],
-                    ),
                     const SizedBox(height: 20),
                     _buildSectionHeader('Deals', onViewAll: () {
                       Navigator.push(
@@ -392,196 +384,71 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildPromoBanner(List posters) {
-    return Container(
-      margin: const EdgeInsets.all(16),
-      height: 140,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        gradient: const LinearGradient(colors: [Color(0xFF006D77), Color(0xFF004D55)]),
-      ),
-      child: Stack(
-        children: [
-          if (posters.isNotEmpty)
-            Positioned.fill(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.network(
-                  posters.first.imageUrl,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => const SizedBox(),
-                ),
-              ),
-            ),
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text('₹299/-', style: TextStyle(color: Colors.white70, fontSize: 14, decoration: TextDecoration.lineThrough)),
-                const Text('₹149', style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
-                  child: const Text('Shop on 0% EMI', style: TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.bold, fontSize: 12)),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget _buildSaleBannersSection() {
+    final banners = [
+      {'title': 'FLASH SALE', 'subtitle': 'Up to 50% Off', 'discount': '50%', 'gradient': [const Color(0xFF006D77), const Color(0xFF004D55)], 'tag': 'Limited Time'},
+      {'title': 'ELECTRONICS', 'subtitle': 'Starting ₹999', 'discount': '40%', 'gradient': [const Color(0xFFFF6B6B), const Color(0xFFFF8E53)], 'tag': 'Hot Deals'},
+      {'title': 'FASHION WEEK', 'subtitle': 'Buy 2 Get 1 Free', 'discount': '60%', 'gradient': [const Color(0xFF667EEA), const Color(0xFF764BA2)], 'tag': 'Trending'},
+      {'title': 'HOME SALE', 'subtitle': 'Flat ₹500 Off', 'discount': '30%', 'gradient': [const Color(0xFF11998E), const Color(0xFF38EF7D)], 'tag': 'Best Deals'},
+    ];
 
-  Widget _buildSecondPromoBanner() {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-      height: 120,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        gradient: const LinearGradient(
-          colors: [Color(0xFFFF6B6B), Color(0xFFFF8E53)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFFFF6B6B).withOpacity(0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          // Background pattern
-          Positioned(
-            right: -20,
-            bottom: -20,
-            child: Icon(
-              Iconsax.discount_shape,
-              size: 120,
-              color: Colors.white.withOpacity(0.15),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        'MEGA SALE',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Up to 70% Off on Electronics',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.9),
-                          fontSize: 13,
-                        ),
-                      ),
-                    ],
-                  ),
+    return Column(
+      children: [
+        SizedBox(
+          height: 178,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            itemCount: banners.length,
+            itemBuilder: (context, index) {
+              final banner = banners[index];
+              final gradientColors = banner['gradient'] as List<Color>;
+              return Container(
+                width: 280,
+                margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  gradient: LinearGradient(colors: gradientColors, begin: Alignment.topLeft, end: Alignment.bottomRight),
+                  boxShadow: [BoxShadow(color: gradientColors.first.withOpacity(0.4), blurRadius: 12, offset: const Offset(0, 6))],
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Text(
-                    'Shop Now',
-                    style: TextStyle(
-                      color: Color(0xFFFF6B6B),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
+                child: Stack(
+                  children: [
+                    Positioned(right: -10, bottom: -15, child: Text(banner['discount'] as String, style: TextStyle(fontSize: 80, fontWeight: FontWeight.bold, color: Colors.white.withOpacity(0.15)))),
+                    Padding(
+                      padding: const EdgeInsets.all(18),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(color: Colors.white.withOpacity(0.25), borderRadius: BorderRadius.circular(20)),
+                            child: Text(banner['tag'] as String, style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
+                          ),
+                          const Spacer(),
+                          Text(banner['title'] as String, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                          const SizedBox(height: 4),
+                          Text(banner['subtitle'] as String, style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 14)),
+                          const SizedBox(height: 10),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(6)),
+                            child: Text('Shop Now', style: TextStyle(color: gradientColors.first, fontWeight: FontWeight.bold, fontSize: 12)),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
+              );
+            },
           ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 9),
+      ],
     );
   }
 
-  Widget _buildOfferBanner({
-    required String title,
-    required String subtitle,
-    required IconData icon,
-    required List<Color> gradient,
-  }) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        gradient: LinearGradient(
-          colors: gradient,
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: gradient.first.withOpacity(0.4),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: Colors.white, size: 28),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.9),
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Icon(Iconsax.arrow_right_3, color: Colors.white.withOpacity(0.8), size: 20),
-        ],
-      ),
-    );
-  }
+
 
   Widget _buildCreditLimitCard(BuildContext context) {
     return GestureDetector(
@@ -671,131 +538,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildDrawer(BuildContext context) {
-    final categories = context.watch<CategoryProvider>().categories;
-    final auth = context.watch<AuthProvider>();
-
-    return Drawer(
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          DrawerHeader(
-            decoration: const BoxDecoration(color: AppTheme.primaryColor),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                const Text('AsBrand', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white)),
-                const SizedBox(height: 8),
-                Text(
-                  auth.isAuthenticated ? 'Welcome, ${auth.user?.name ?? 'User'}!' : 'Sign in to unlock credit',
-                  style: const TextStyle(color: Colors.white70),
-                ),
-              ],
-            ),
-          ),
-          if (!auth.isAuthenticated)
-            ListTile(
-              leading: const Icon(Iconsax.login, color: AppTheme.primaryColor),
-              title: const Text('Sign In / Register'),
-              trailing: const Icon(Iconsax.arrow_right_3),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
-              },
-            ),
-          ListTile(
-            leading: const Icon(Iconsax.heart, color: AppTheme.primaryColor),
-            title: const Text('My Wishlist'),
-            trailing: const Icon(Iconsax.arrow_right_3),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const WishlistScreen()));
-            },
-          ),
-          ListTile(
-            leading: const Icon(Iconsax.shopping_cart, color: AppTheme.primaryColor),
-            title: const Text('My Cart'),
-            trailing: const Icon(Iconsax.arrow_right_3),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen()));
-            },
-          ),
-          const Divider(),
-          const Padding(
-            padding: EdgeInsets.only(left: 16, top: 8, bottom: 8),
-            child: Text('Categories', style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.textSecondary)),
-          ),
-          ...categories.map((cat) => ListTile(
-            leading: const Icon(Iconsax.category, color: AppTheme.primaryColor),
-            title: Text(cat.name),
-            trailing: const Icon(Iconsax.arrow_right_3),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => CategoryProductsScreen(category: cat)),
-              );
-            },
-          )),
-          const Divider(),
-          ListTile(
-            leading: const Icon(Iconsax.box, color: AppTheme.primaryColor),
-            title: const Text('My Orders'),
-            trailing: const Icon(Iconsax.arrow_right_3),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const MyOrdersScreen()));
-            },
-          ),
-          if (auth.isAuthenticated) ...[
-            ListTile(
-              leading: const Icon(Iconsax.receipt_2, color: AppTheme.primaryColor),
-              title: const Text('My EMIs'),
-              trailing: const Icon(Iconsax.arrow_right_3),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const MyEmisScreen()));
-              },
-            ),
-          ],
-          ListTile(
-            leading: const Icon(Iconsax.bag_2, color: AppTheme.primaryColor),
-            title: const Text('My Orders'),
-            trailing: const Icon(Iconsax.arrow_right_3),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const MyOrdersScreen()));
-            },
-          ),
-          ListTile(
-            leading: const Icon(Iconsax.call, color: AppTheme.primaryColor),
-            title: const Text('Contact Us'),
-            trailing: const Icon(Iconsax.arrow_right_3),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const ContactScreen()));
-            },
-          ),
-          if (auth.isAuthenticated)
-            ListTile(
-              leading: const Icon(Iconsax.logout, color: Colors.red),
-              title: const Text('Logout', style: TextStyle(color: Colors.red)),
-              onTap: () async {
-                await auth.logout();
-                if (context.mounted) {
-                  context.read<CartProvider>().clearCart();
-                  context.read<WishlistProvider>().clearWishlist();
-                  context.read<AddressProvider>().clearAddresses();
-                  Navigator.pop(context);
-                }
-              },
-            ),
-        ],
-      ),
-    );
-  }
 }
 
 // Helper skeleton widgets for loading state

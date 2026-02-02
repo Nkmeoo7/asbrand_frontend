@@ -212,9 +212,9 @@ class _StoresScreenState extends State<StoresScreen> {
                     child: Center(
                       child: Column(
                         children: [
-                          const SizedBox(height: 60),
+                          const SizedBox(height: 70),
                           Icon(Iconsax.shop, size: 60, color: Colors.grey.shade300),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 19),
                           Text(
                             'No stores found',
                             style: TextStyle(color: Colors.grey.shade500, fontSize: 16),
