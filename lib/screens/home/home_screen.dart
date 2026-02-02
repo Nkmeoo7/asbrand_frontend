@@ -150,7 +150,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     _buildProductGrid(filteredProducts),
                   ] else ...[
                     _buildPromoBanner(categoryProvider.posters),
-                    _buildCreditLimitCard(context),
+                    // Credit limit card removed - moved to profile button in app bar
                     _buildSectionHeader('Best Sellers', onViewAll: () {}),
                     _buildProductGrid(productProvider.bestSellers),
                     const SizedBox(height: 20),
@@ -199,39 +199,23 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
         ),
-        // Credit Button
-        GestureDetector(
-          onTap: () => _showAuthOrProfile(context),
-          child: Container(
-            margin: const EdgeInsets.only(right: 12),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: Colors.amber,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(Iconsax.card, size: 14, color: Colors.black),
-                ),
-                const SizedBox(width: 8),
-                Consumer<AuthProvider>(
-                  builder: (context, auth, _) => Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(auth.isAuthenticated ? 'Credit:₹50000' : 'Credit:₹0', style: const TextStyle(fontSize: 10, color: Colors.black54)),
-                      Text(auth.isAuthenticated ? 'Available' : 'Unlock: ₹50000', style: const TextStyle(fontSize: 10, color: AppTheme.primaryColor, fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                ),
-              ],
+        // Profile Button
+        Consumer<AuthProvider>(
+          builder: (context, auth, _) => GestureDetector(
+            onTap: () => _showAuthOrProfile(context),
+            child: Container(
+              margin: const EdgeInsets.only(right: 12),
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: auth.isAuthenticated ? AppTheme.primaryColor : Colors.white,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                auth.isAuthenticated ? Iconsax.user : Iconsax.profile_add,
+                size: 18,
+                color: auth.isAuthenticated ? Colors.white : AppTheme.primaryColor,
+              ),
             ),
           ),
         ),
@@ -279,28 +263,36 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildSearchBar() {
     return Container(
       margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8)],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: TextField(
         controller: _searchController,
         onChanged: (value) => setState(() => _searchQuery = value),
+        style: const TextStyle(fontSize: 15),
         decoration: InputDecoration(
-          hintText: 'Search for TV, Mobiles, Headphones & more...',
-          hintStyle: const TextStyle(color: AppTheme.textHint, fontSize: 14),
-          prefixIcon: const Icon(Iconsax.search_normal, color: AppTheme.textHint),
+          hintText: 'Search for products, brands & more...',
+          hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+          prefixIcon: Icon(Iconsax.search_normal_1, color: AppTheme.primaryColor, size: 22),
           suffixIcon: _searchQuery.isNotEmpty
               ? IconButton(
-                  icon: const Icon(Iconsax.close_circle),
+                  icon: Icon(Iconsax.close_circle, color: Colors.grey.shade400),
                   onPressed: () {
                     _searchController.clear();
                     setState(() => _searchQuery = '');
                   },
                 )
-              : null,
+              : Icon(Iconsax.microphone, color: Colors.grey.shade400, size: 22),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           border: InputBorder.none,
           filled: false,
         ),
@@ -325,27 +317,36 @@ class _HomeScreenState extends State<HomeScreen> {
       return Iconsax.category;
     }
 
-    final allCategories = [
-      {'id': null, 'name': 'All', 'icon': Iconsax.element_4},
-      ...categories.map((c) => {'id': c.id, 'name': c.name, 'icon': getCategoryIcon(c.name), 'image': c.image}),
-    ];
-
     return SizedBox(
       height: 100,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: allCategories.length,
+        itemCount: categories.length + 1, // +1 for 'All'
         separatorBuilder: (_, __) => const SizedBox(width: 12),
         itemBuilder: (context, index) {
-          final cat = allCategories[index];
-          final isSelected = _selectedCategoryId == cat['id'];
+          // First item is 'All' - just filters on home screen
+          if (index == 0) {
+            return CategoryChip(
+              label: 'All',
+              icon: Iconsax.element_4,
+              imageUrl: null,
+              isSelected: _selectedCategoryId == null,
+              onTap: () => setState(() => _selectedCategoryId = null),
+            );
+          }
+          
+          // Other categories navigate to CategoryProductsScreen
+          final category = categories[index - 1];
           return CategoryChip(
-            label: cat['name'] as String,
-            icon: cat['icon'] as IconData,
-            imageUrl: cat['image'] as String?,
-            isSelected: isSelected,
-            onTap: () => setState(() => _selectedCategoryId = cat['id'] as String?),
+            label: category.name,
+            icon: getCategoryIcon(category.name),
+            imageUrl: category.image,
+            isSelected: false, // Not used since we navigate away
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => CategoryProductsScreen(category: category)),
+            ),
           );
         },
       ),

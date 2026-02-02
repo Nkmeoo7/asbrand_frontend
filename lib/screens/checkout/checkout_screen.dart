@@ -4,6 +4,7 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../core/theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
+import '../../providers/address_provider.dart';
 import '../../services/payment_service.dart';
 import '../auth/login_screen.dart';
 import '../payment/order_confirmation_screen.dart';
@@ -20,6 +21,7 @@ class CheckoutScreen extends StatefulWidget {
 class _CheckoutScreenState extends State<CheckoutScreen> {
   int _currentStep = 0;
   bool _isLoading = false;
+  bool _showAddressForm = false;
 
   // Address Form Controllers
   final _phoneController = TextEditingController();
@@ -35,6 +37,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   void initState() {
     super.initState();
     _paymentService = PaymentService();
+    // Check if user has saved addresses
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final addressProvider = context.read<AddressProvider>();
+      if (!addressProvider.hasAddresses) {
+        setState(() => _showAddressForm = true);
+      }
+    });
   }
 
   @override
@@ -117,97 +126,282 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Widget _buildAddressStep() {
-    return Column(
-      children: [
-        // Delivery Address Card
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(Iconsax.location, color: AppTheme.primaryColor),
-                  const SizedBox(width: 8),
-                  const Text('Delivery Address', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                ],
-              ),
-              const SizedBox(height: 20),
-
-              _buildTextField(_phoneController, 'Phone Number', Iconsax.call, TextInputType.phone),
-              _buildTextField(_streetController, 'Street Address', Iconsax.home, TextInputType.streetAddress),
-              Row(
-                children: [
-                  Expanded(child: _buildTextField(_cityController, 'City', null, TextInputType.text)),
-                  const SizedBox(width: 12),
-                  Expanded(child: _buildTextField(_stateController, 'State', null, TextInputType.text)),
-                ],
-              ),
-              _buildTextField(_pincodeController, 'PIN Code', Iconsax.location, TextInputType.number, maxLength: 6),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-
-        // EMI Coming Soon Banner
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.orange.shade50,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.orange.shade200),
-          ),
-          child: Row(
-            children: [
+    return Consumer<AddressProvider>(
+      builder: (context, addressProvider, _) {
+        return Column(
+          children: [
+            // Saved Addresses Section
+            if (addressProvider.hasAddresses && !_showAddressForm) ...[
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.orange,
-                  borderRadius: BorderRadius.circular(8),
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)],
                 ),
-                child: const Icon(Iconsax.calendar, color: Colors.white, size: 20),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('EMI Option', style: TextStyle(fontWeight: FontWeight.bold)),
-                    Text('Coming Soon! Pay in easy installments.', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Iconsax.location, color: AppTheme.primaryColor),
+                            const SizedBox(width: 8),
+                            const Text('Delivery Address', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                        TextButton.icon(
+                          onPressed: () => setState(() => _showAddressForm = true),
+                          icon: const Icon(Iconsax.add, size: 18),
+                          label: const Text('Add New'),
+                          style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    // List saved addresses
+                    ...addressProvider.addresses.map((address) => _buildAddressCard(address, addressProvider)),
                   ],
                 ),
               ),
+            ],
+
+            // Add New Address Form
+            if (_showAddressForm) ...[
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.orange,
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
+                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)],
                 ),
-                child: const Text('SOON', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Iconsax.location, color: AppTheme.primaryColor),
+                            const SizedBox(width: 8),
+                            Text(
+                              addressProvider.hasAddresses ? 'Add New Address' : 'Delivery Address',
+                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                        if (addressProvider.hasAddresses)
+                          TextButton(
+                            onPressed: () => setState(() => _showAddressForm = false),
+                            child: const Text('Cancel'),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    _buildTextField(_phoneController, 'Phone Number', Iconsax.call, TextInputType.phone),
+                    _buildTextField(_streetController, 'Street Address', Iconsax.home, TextInputType.streetAddress),
+                    Row(
+                      children: [
+                        Expanded(child: _buildTextField(_cityController, 'City', null, TextInputType.text)),
+                        const SizedBox(width: 12),
+                        Expanded(child: _buildTextField(_stateController, 'State', null, TextInputType.text)),
+                      ],
+                    ),
+                    _buildTextField(_pincodeController, 'PIN Code', Iconsax.location, TextInputType.number, maxLength: 6),
+                    
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () => _saveAddress(addressProvider),
+                        icon: const Icon(Iconsax.tick_circle),
+                        label: const Text('Save Address'),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          side: BorderSide(color: AppTheme.primaryColor),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
-          ),
-        ),
-        const SizedBox(height: 24),
 
-        // Continue Button
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: _validateAndProceed,
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            const SizedBox(height: 16),
+
+            // EMI Coming Soon Banner
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.orange.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.orange.shade200),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.orange,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Iconsax.calendar, color: Colors.white, size: 20),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('EMI Option', style: TextStyle(fontWeight: FontWeight.bold)),
+                        Text('Coming Soon! Pay in easy installments.', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.orange,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Text('SOON', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
             ),
-            child: const Text('Continue to Payment', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 24),
+
+            // Continue Button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: addressProvider.selectedAddress != null ? () => setState(() => _currentStep = 1) : _validateAndProceed,
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: const Text('Continue to Payment', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildAddressCard(Address address, AddressProvider provider) {
+    final isSelected = provider.selectedAddress?.id == address.id;
+    return GestureDetector(
+      onTap: () => provider.selectAddress(address.id),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected ? AppTheme.primaryColor.withValues(alpha: 0.05) : Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? AppTheme.primaryColor : Colors.grey.shade200,
+            width: isSelected ? 2 : 1,
           ),
         ),
-      ],
+        child: Row(
+          children: [
+            Icon(
+              isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
+              color: isSelected ? AppTheme.primaryColor : Colors.grey,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        address.phone,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      if (address.isDefault) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.green.shade100,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text('DEFAULT', style: TextStyle(color: Colors.green.shade700, fontSize: 9, fontWeight: FontWeight.bold)),
+                        ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    address.fullAddress,
+                    style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              icon: Icon(Iconsax.trash, color: Colors.red.shade300, size: 20),
+              onPressed: () => provider.removeAddress(address.id),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _saveAddress(AddressProvider provider) {
+    if (_phoneController.text.length < 10) {
+      _showError('Please enter a valid phone number');
+      return;
+    }
+    if (_streetController.text.isEmpty) {
+      _showError('Please enter your street address');
+      return;
+    }
+    if (_cityController.text.isEmpty || _stateController.text.isEmpty) {
+      _showError('Please enter city and state');
+      return;
+    }
+    if (_pincodeController.text.length != 6) {
+      _showError('Please enter a valid 6-digit PIN code');
+      return;
+    }
+
+    final address = Address(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      phone: _phoneController.text,
+      street: _streetController.text,
+      city: _cityController.text,
+      state: _stateController.text,
+      pincode: _pincodeController.text,
+    );
+
+    provider.addAddress(address);
+    provider.selectAddress(address.id);
+    
+    // Clear form
+    _phoneController.clear();
+    _streetController.clear();
+    _cityController.clear();
+    _stateController.clear();
+    _pincodeController.clear();
+    
+    setState(() => _showAddressForm = false);
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Address saved successfully!'),
+        duration: Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+      ),
     );
   }
 
