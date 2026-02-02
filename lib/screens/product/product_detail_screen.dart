@@ -253,6 +253,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   SnackBar(
                     content: const Text('Added to cart!'),
                     backgroundColor: AppTheme.primaryColor,
+                    duration: const Duration(seconds: 2),
+                    behavior: SnackBarBehavior.floating,
+                    margin: const EdgeInsets.all(16),
                     action: SnackBarAction(
                       label: 'VIEW CART',
                       textColor: Colors.white,

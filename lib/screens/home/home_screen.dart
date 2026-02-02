@@ -17,6 +17,9 @@ import '../cart/cart_screen.dart';
 import '../checkout/checkout_screen.dart';
 import '../kyc/kyc_screen.dart';
 import '../credit/credit_dashboard_screen.dart';
+import '../wishlist/wishlist_screen.dart';
+import '../orders/my_orders_screen.dart';
+import '../contact/contact_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -516,6 +519,10 @@ class _HomeScreenState extends State<HomeScreen> {
             leading: const Icon(Iconsax.heart, color: AppTheme.primaryColor),
             title: const Text('My Wishlist'),
             trailing: const Icon(Iconsax.arrow_right_3),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const WishlistScreen()));
+            },
           ),
           ListTile(
             leading: const Icon(Iconsax.shopping_cart, color: AppTheme.primaryColor),
@@ -565,11 +572,19 @@ class _HomeScreenState extends State<HomeScreen> {
             leading: const Icon(Iconsax.bag_2, color: AppTheme.primaryColor),
             title: const Text('My Orders'),
             trailing: const Icon(Iconsax.arrow_right_3),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const MyOrdersScreen()));
+            },
           ),
           ListTile(
             leading: const Icon(Iconsax.call, color: AppTheme.primaryColor),
             title: const Text('Contact Us'),
             trailing: const Icon(Iconsax.arrow_right_3),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const ContactScreen()));
+            },
           ),
           if (auth.isAuthenticated)
             ListTile(

@@ -4,6 +4,7 @@ import '../../core/theme.dart';
 import '../../providers/category_provider.dart';
 import '../../providers/product_provider.dart';
 import '../../models/category.dart';
+import '../product/product_detail_screen.dart';
 
 class CategoriesScreen extends StatefulWidget {
   const CategoriesScreen({super.key});
@@ -203,7 +204,13 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+            Expanded(
+              child: Text(
+                title, 
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
             TextButton(
               onPressed: () {},
               child: const Text('View All', style: TextStyle(color: AppTheme.primaryColor, fontSize: 12)),
@@ -212,36 +219,37 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         ),
         const SizedBox(height: 8),
         SizedBox(
-          height: 80,
+          height: 90, // Increased from 80 to fix overflow
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: subcategories.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 16),
+            separatorBuilder: (_, __) => const SizedBox(width: 12),
             itemBuilder: (context, index) {
               final sub = subcategories[index];
-              return Column(
-                children: [
-                  Container(
-                    width: 50,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(8),
+              return SizedBox(
+                width: 65,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(Icons.category, color: AppTheme.primaryColor, size: 24),
                     ),
-                    child: const Icon(Icons.category, color: AppTheme.primaryColor),
-                  ),
-                  const SizedBox(height: 6),
-                  SizedBox(
-                    width: 70,
-                    child: Text(
+                    const SizedBox(height: 4),
+                    Text(
                       sub.name,
                       textAlign: TextAlign.center,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 10),
+                      style: const TextStyle(fontSize: 10, height: 1.2),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               );
             },
           ),
@@ -265,12 +273,38 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             return Card(
               margin: const EdgeInsets.only(bottom: 8),
               child: ListTile(
-                leading: product.primaryImage.isNotEmpty
-                    ? Image.network(product.primaryImage, width: 50, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Icon(Icons.image))
-                    : const Icon(Icons.image),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => ProductDetailScreen(product: product)),
+                ),
+                leading: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: product.primaryImage.isNotEmpty
+                      ? Image.network(
+                          product.primaryImage,
+                          width: 50,
+                          height: 50,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
+                            width: 50,
+                            height: 50,
+                            color: Colors.grey[100],
+                            child: const Icon(Icons.image, color: Colors.grey),
+                          ),
+                        )
+                      : Container(
+                          width: 50,
+                          height: 50,
+                          color: Colors.grey[100],
+                          child: const Icon(Icons.image, color: Colors.grey),
+                        ),
+                ),
                 title: Text(product.name, maxLines: 1, overflow: TextOverflow.ellipsis),
-                subtitle: Text('₹${(product.offerPrice ?? product.price).toStringAsFixed(0)}'),
-                trailing: const Icon(Icons.chevron_right),
+                subtitle: Text(
+                  '₹${(product.offerPrice ?? product.price).toStringAsFixed(0)}',
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryColor),
+                ),
+                trailing: const Icon(Icons.chevron_right, color: AppTheme.primaryColor),
               ),
             );
           },

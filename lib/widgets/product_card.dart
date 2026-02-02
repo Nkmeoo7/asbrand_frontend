@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../core/theme.dart';
 
-/// Flipkart-style product card - clean, minimal design
+/// Flipkart-style product card - clean, minimal design with improved image handling
 class ProductCard extends StatelessWidget {
   final String imageUrl;
   final String name;
@@ -34,47 +34,72 @@ class ProductCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.grey.shade200, width: 1),
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Image Section
             Expanded(
-              flex: 3,
+              flex: 5,
               child: Stack(
                 children: [
-                  // Product Image
+                  // Product Image with proper loading and error handling
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.all(8),
-                    child: Image.network(
-                      imageUrl,
-                      fit: BoxFit.contain,
-                      errorBuilder: (_, __, ___) => Center(
-                        child: Icon(Icons.image_outlined, size: 40, color: Colors.grey[300]),
-                      ),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[50],
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
+                      child: imageUrl.isNotEmpty
+                          ? Image.network(
+                              imageUrl,
+                              fit: BoxFit.cover,
+                              loadingBuilder: (context, child, loadingProgress) {
+                                if (loadingProgress == null) return child;
+                                return Center(
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    value: loadingProgress.expectedTotalBytes != null
+                                        ? loadingProgress.cumulativeBytesLoaded /
+                                            loadingProgress.expectedTotalBytes!
+                                        : null,
+                                    color: AppTheme.primaryColor.withOpacity(0.5),
+                                  ),
+                                );
+                              },
+                              errorBuilder: (_, __, ___) => _buildPlaceholder(),
+                            )
+                          : _buildPlaceholder(),
                     ),
                   ),
                   
                   // Discount Badge (Flipkart style - green)
                   if (discountPercent > 0)
                     Positioned(
-                      top: 6,
-                      left: 6,
+                      top: 8,
+                      left: 8,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                         decoration: BoxDecoration(
                           color: const Color(0xFF388E3C),
-                          borderRadius: BorderRadius.circular(2),
+                          borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
                           '$discountPercent% off',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 10,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
@@ -83,17 +108,13 @@ class ProductCard extends StatelessWidget {
               ),
             ),
             
-            // Divider
-            Container(height: 1, color: Colors.grey.shade100),
-            
             // Info Section
             Expanded(
-              flex: 2,
+              flex: 4,
               child: Padding(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(10),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     // Product Name
                     Text(
@@ -103,56 +124,60 @@ class ProductCard extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 12,
                         color: Colors.black87,
-                        height: 1.2,
+                        fontWeight: FontWeight.w500,
+                        height: 1.3,
                       ),
                     ),
-                    
+                    const Spacer(),
                     // Price Section
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
                       children: [
-                        // Main Price
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Text(
-                              '₹${price.toStringAsFixed(0)}',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
-                              ),
-                            ),
-                            if (originalPrice > price) ...[
-                              const SizedBox(width: 4),
-                              Text(
-                                '₹${originalPrice.toStringAsFixed(0)}',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: Colors.grey[500],
-                                  decoration: TextDecoration.lineThrough,
-                                ),
-                              ),
-                            ],
-                          ],
+                        Text(
+                          '₹${_formatPrice(price)}',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
                         ),
-                        const SizedBox(height: 3),
-                        // EMI Info - Flipkart style
-                        Row(
-                          children: [
-                            Icon(Icons.credit_card, size: 10, color: AppTheme.primaryColor),
-                            const SizedBox(width: 3),
-                            Text(
-                              'EMI from ₹${emiPerMonth.toStringAsFixed(0)}/mo',
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: AppTheme.primaryColor,
-                                fontWeight: FontWeight.w500,
-                              ),
+                        if (originalPrice > price) ...[
+                          const SizedBox(width: 6),
+                          Text(
+                            '₹${_formatPrice(originalPrice)}',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey[500],
+                              decoration: TextDecoration.lineThrough,
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ],
+                    ),
+                    const SizedBox(height: 4),
+                    // EMI Info
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryColor.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.credit_card, size: 12, color: AppTheme.primaryColor),
+                          const SizedBox(width: 4),
+                          Text(
+                            'EMI ₹${_formatPrice(emiPerMonth)}/mo',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: AppTheme.primaryColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -162,5 +187,27 @@ class ProductCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildPlaceholder() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.image_outlined, size: 32, color: Colors.grey[300]),
+          const SizedBox(height: 4),
+          Text('No image', style: TextStyle(fontSize: 10, color: Colors.grey[400])),
+        ],
+      ),
+    );
+  }
+
+  String _formatPrice(double price) {
+    if (price >= 100000) {
+      return '${(price / 100000).toStringAsFixed(1)}L';
+    } else if (price >= 1000) {
+      return price.toStringAsFixed(0);
+    }
+    return price.toStringAsFixed(0);
   }
 }
