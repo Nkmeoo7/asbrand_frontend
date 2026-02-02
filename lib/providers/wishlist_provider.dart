@@ -2,6 +2,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/product.dart';
+import '../services/api_service.dart';
+import '../core/constants.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 /// Manages wishlist state - stores favorited products with persistence
 class WishlistProvider extends ChangeNotifier {
@@ -9,8 +12,54 @@ class WishlistProvider extends ChangeNotifier {
   final List<Product> _items = [];
   bool _isLoaded = false;
 
+  final ApiService _apiService = ApiService();
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+
   WishlistProvider() {
-    _loadFromStorage();
+    _loadFromStorage().then((_) => syncWithBackend());
+  }
+
+  /// Check if user is logged in
+  Future<bool> get _isLoggedIn async {
+    String? token = await _storage.read(key: 'auth_token');
+    return token != null;
+  }
+
+  /// Initial backend sync
+  Future<void> syncWithBackend() async {
+    if (await _isLoggedIn) {
+      // If we have local items, sync them to backend first
+      for (var item in _items) {
+         try {
+           await _apiService.post('${ApiConstants.wishlist}/add', {'productId': item.id});
+         } catch (_) {}
+      }
+      
+      // Then fetch latest from backend
+      await fetchWishlistFromBackend();
+    }
+  }
+
+  /// Fetch wishlist from backend
+  Future<void> fetchWishlistFromBackend() async {
+    if (!(await _isLoggedIn)) return;
+
+    try {
+      final response = await _apiService.get(ApiConstants.wishlist);
+      if (response['success'] == true && response['data'] != null) {
+        final data = response['data'];
+        final List<dynamic> products = data['products'] ?? [];
+        
+        _items.clear();
+        for (var item in products) {
+           _items.add(Product.fromJson(item));
+        }
+        _saveToStorage();
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('Error fetching wishlist: $e');
+    }
   }
 
   /// Get all wishlist items
@@ -25,19 +74,39 @@ class WishlistProvider extends ChangeNotifier {
   }
 
   /// Add product to wishlist
-  void addToWishlist(Product product) {
+  Future<void> addToWishlist(Product product) async {
     if (!isInWishlist(product.id)) {
       _items.add(product);
       _saveToStorage();
       notifyListeners();
+
+      // Sync with backend
+      if (await _isLoggedIn) {
+        try {
+          await _apiService.post('${ApiConstants.wishlist}/add', {
+            'productId': product.id
+          });
+        } catch (e) {
+          debugPrint('Error adding to backend wishlist: $e');
+        }
+      }
     }
   }
 
   /// Remove product from wishlist
-  void removeFromWishlist(String productId) {
+  Future<void> removeFromWishlist(String productId) async {
     _items.removeWhere((p) => p.id == productId);
     _saveToStorage();
     notifyListeners();
+
+    // Sync with backend
+    if (await _isLoggedIn) {
+      try {
+        await _apiService.delete('${ApiConstants.wishlist}/remove/$productId');
+      } catch (e) {
+        debugPrint('Error removing from backend wishlist: $e');
+      }
+    }
   }
 
   /// Toggle product in wishlist

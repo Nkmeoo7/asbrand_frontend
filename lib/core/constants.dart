@@ -29,6 +29,9 @@ class ApiConstants {
   // ORDER & CART ENDPOINTS
   // ---------------------------------------------------------------------------
   static const String orders = '$baseUrl/orders';
+  static const String cart = '$baseUrl/cart';
+  static const String wishlist = '$baseUrl/wishlist';
+  static const String address = '$baseUrl/address';
   static const String coupons = '$baseUrl/couponCodes';
 
   // ---------------------------------------------------------------------------

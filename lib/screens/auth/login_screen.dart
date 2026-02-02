@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../core/theme.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/cart_provider.dart';
+import '../../providers/wishlist_provider.dart';
+import '../../providers/address_provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -35,6 +38,11 @@ class _LoginScreenState extends State<LoginScreen> {
       await authProvider.login(_emailController.text.trim(), _passwordController.text);
 
       if (mounted) {
+        // Sync cart and wishlist with backend
+        context.read<CartProvider>().syncWithBackend();
+        context.read<WishlistProvider>().syncWithBackend();
+        context.read<AddressProvider>().syncWithBackend();
+
         Navigator.pop(context, true); // Return success
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Login successful!'), backgroundColor: Colors.green),
@@ -225,6 +233,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
 
       if (mounted) {
+        // Sync cart and wishlist with backend
+        context.read<CartProvider>().syncWithBackend();
+        context.read<WishlistProvider>().syncWithBackend();
+        context.read<AddressProvider>().syncWithBackend();
+
         Navigator.pop(context, true);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Registration successful!'), backgroundColor: Colors.green),
