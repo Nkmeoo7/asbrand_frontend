@@ -294,12 +294,12 @@ class _HomeScreenState extends State<HomeScreen> {
       child: TextField(
         controller: _searchController,
         onChanged: (value) => setState(() => _searchQuery = value),
+        onSubmitted: (value) => context.read<ProductProvider>().setSearch(value),
         style: const TextStyle(fontSize: 15),
         decoration: InputDecoration(
           hintText: 'Search for products, brands & more...',
           hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
           prefixIcon: Icon(Iconsax.search_normal_1, color: AppTheme.primaryColor, size: 22),
-          onSubmitted: (value) => context.read<ProductProvider>().setSearch(value),
           suffixIcon: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
