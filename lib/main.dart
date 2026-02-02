@@ -6,9 +6,11 @@ import 'providers/auth_provider.dart';
 import 'providers/product_provider.dart';
 import 'providers/category_provider.dart';
 import 'providers/cart_provider.dart';
+import 'providers/wishlist_provider.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/categories/categories_screen.dart';
 import 'screens/cart/cart_screen.dart';
+import 'screens/wishlist/wishlist_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -25,6 +27,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ProductProvider()),
         ChangeNotifierProvider(create: (_) => CategoryProvider()),
         ChangeNotifierProvider(create: (_) => CartProvider()),
+        ChangeNotifierProvider(create: (_) => WishlistProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -65,8 +68,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           HomeScreen(),
           _PlaceholderScreen(title: 'Stores', icon: Icons.store),
           CategoriesScreen(),
-          MyEmisScreen(),
-          _WishlistScreen(),
+          _ComingSoonScreen(title: 'My EMIs', icon: Icons.calendar_month),
+          WishlistScreen(),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -99,7 +102,7 @@ class _PlaceholderScreen extends StatelessWidget {
           children: [
             Icon(icon, size: 80, color: Colors.grey.shade300),
             const SizedBox(height: 16),
-            Text('$title', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             const Text('Coming Soon', style: TextStyle(color: Colors.grey)),
           ],
@@ -109,22 +112,26 @@ class _PlaceholderScreen extends StatelessWidget {
   }
 }
 
-class _WishlistScreen extends StatelessWidget {
-  const _WishlistScreen();
+class _ComingSoonScreen extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  const _ComingSoonScreen({required this.title, required this.icon});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Wishlist')),
+      appBar: AppBar(title: Text(title)),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.favorite_outline, size: 80, color: Colors.grey.shade300),
+            Icon(icon, size: 80, color: Colors.grey.shade300),
             const SizedBox(height: 16),
-            const Text('Your wishlist is empty', style: TextStyle(fontSize: 18)),
+            Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            const Text('Start adding products you love!', style: TextStyle(color: Colors.grey)),
+            const Text('Coming Soon', style: TextStyle(color: Colors.grey, fontSize: 16)),
+            const SizedBox(height: 4),
+            const Text('This feature will be available soon!', style: TextStyle(color: Colors.grey)),
           ],
         ),
       ),

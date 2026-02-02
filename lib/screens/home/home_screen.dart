@@ -20,6 +20,7 @@ import '../credit/credit_dashboard_screen.dart';
 import '../wishlist/wishlist_screen.dart';
 import '../orders/my_orders_screen.dart';
 import '../contact/contact_screen.dart';
+import '../categories/category_products_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -544,7 +545,10 @@ class _HomeScreenState extends State<HomeScreen> {
             trailing: const Icon(Iconsax.arrow_right_3),
             onTap: () {
               Navigator.pop(context);
-              setState(() => _selectedCategoryId = cat.id);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => CategoryProductsScreen(category: cat)),
+              );
             },
           )),
           const Divider(),

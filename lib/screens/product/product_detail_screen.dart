@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../core/theme.dart';
 import '../../models/product.dart';
 import '../../providers/cart_provider.dart';
+import '../../providers/wishlist_provider.dart';
 import '../cart/cart_screen.dart';
 import '../auth/login_screen.dart';
 import '../checkout/checkout_screen.dart';
@@ -22,6 +24,40 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   int selectedImageIndex = 0;
   int selectedEmiMonths = 3;
 
+  void _shareProduct() {
+    final product = widget.product;
+    final shareText = '''
+Check out ${product.name} on AsBrand!
+
+💰 Price: ₹${(product.offerPrice ?? product.price).toStringAsFixed(0)}
+📦 EMI from ₹${product.emiPerMonth.toStringAsFixed(0)}/month
+
+Download AsBrand app to shop with easy EMI options!
+''';
+    
+    Clipboard.setData(ClipboardData(text: shareText));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Product link copied to clipboard!'),
+        duration: Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  void _toggleWishlist() {
+    final wishlist = context.read<WishlistProvider>();
+    final added = wishlist.toggleWishlist(widget.product);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(added ? 'Added to wishlist!' : 'Removed from wishlist'),
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: added ? AppTheme.primaryColor : Colors.grey[700],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final product = widget.product;
@@ -32,8 +68,24 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       appBar: AppBar(
         title: const Text('Product Details'),
         actions: [
-          IconButton(icon: const Icon(Iconsax.share), onPressed: () {}),
-          IconButton(icon: const Icon(Iconsax.heart), onPressed: () {}),
+          IconButton(
+            icon: const Icon(Iconsax.share),
+            onPressed: _shareProduct,
+            tooltip: 'Share',
+          ),
+          Consumer<WishlistProvider>(
+            builder: (context, wishlist, _) {
+              final isInWishlist = wishlist.isInWishlist(product.id);
+              return IconButton(
+                icon: Icon(
+                  isInWishlist ? Icons.favorite : Iconsax.heart,
+                  color: isInWishlist ? Colors.red : null,
+                ),
+                onPressed: _toggleWishlist,
+                tooltip: isInWishlist ? 'Remove from wishlist' : 'Add to wishlist',
+              );
+            },
+          ),
         ],
       ),
       body: SingleChildScrollView(
@@ -86,8 +138,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   ),
                   const SizedBox(height: 16),
                   
-                  // EMI Options
-                  _buildEmiSection(product),
+                  // EMI Options - Hidden for now, will be enabled in future
+                  // TODO: Enable EMI section when feature is ready
+                  // _buildEmiSection(product),
                 ],
               ),
             ),

@@ -413,67 +413,8 @@ class _CreditDashboardScreenState extends State<CreditDashboardScreen> {
 
 // ==================== MY EMIS SCREEN ====================
 
-class MyEmisScreen extends StatefulWidget {
+class MyEmisScreen extends StatelessWidget {
   const MyEmisScreen({super.key});
-
-  @override
-  State<MyEmisScreen> createState() => _MyEmisScreenState();
-}
-
-class _MyEmisScreenState extends State<MyEmisScreen> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-  List<dynamic> _emiApplications = [];
-  bool _isLoading = true;
-
-  // Mock data for demo
-  final List<Map<String, dynamic>> _mockEmis = [
-    {
-      'orderId': 'ORD12345ABC',
-      'productName': 'iPhone 15 Pro',
-      'status': 'active',
-      'tenure': 6,
-      'paidInstallments': 2,
-      'monthlyEmi': 20833,
-      'totalAmount': 125000,
-      'remainingAmount': 83332,
-      'nextDueDate': '2026-02-05',
-    },
-    {
-      'orderId': 'ORD67890XYZ',
-      'productName': 'Samsung TV 55"',
-      'status': 'active',
-      'tenure': 3,
-      'paidInstallments': 1,
-      'monthlyEmi': 15000,
-      'totalAmount': 45000,
-      'remainingAmount': 30000,
-      'nextDueDate': '2026-02-05',
-    },
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 3, vsync: this);
-    _loadEmiApplications();
-  }
-
-  Future<void> _loadEmiApplications() async {
-    // Use mock data for demo
-    await Future.delayed(const Duration(milliseconds: 500));
-    if (mounted) {
-      setState(() {
-        _emiApplications = _mockEmis;
-        _isLoading = false;
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -481,296 +422,111 @@ class _MyEmisScreenState extends State<MyEmisScreen> with SingleTickerProviderSt
       backgroundColor: AppTheme.scaffoldBackground,
       appBar: AppBar(
         title: const Text('My EMIs'),
-        bottom: TabBar(
-          controller: _tabController,
-          indicatorColor: Colors.white,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.white,
-          tabs: [
-            Tab(text: 'Active'),
-            Tab(text: 'Completed'),
-            Tab(text: 'All'),
-          ],
-        ),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : TabBarView(
-              controller: _tabController,
-              children: [
-                _buildEmiList(_emiApplications.where((e) => e['status'] == 'active').toList()),
-                _buildEmiList(_emiApplications.where((e) => e['status'] == 'completed').toList()),
-                _buildEmiList(_emiApplications),
-              ],
-            ),
-    );
-  }
-
-  Widget _buildEmiList(List<dynamic> emis) {
-    if (emis.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Iconsax.receipt_2, size: 80, color: Colors.grey.shade300),
-            const SizedBox(height: 16),
-            Text('No EMIs found', style: TextStyle(color: AppTheme.textSecondary, fontSize: 16)),
-          ],
-        ),
-      );
-    }
-
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: emis.length,
-      itemBuilder: (context, index) => _buildEmiCard(emis[index]),
-    );
-  }
-
-  Widget _buildEmiCard(Map<String, dynamic> emi) {
-    final status = emi['status'] ?? 'pending';
-    final paidInstallments = emi['paidInstallments'] ?? 0;
-    final totalInstallments = emi['tenure'] ?? 0;
-    final monthlyEmi = emi['monthlyEmi'] ?? 0;
-    final remainingAmount = emi['remainingAmount'] ?? 0;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(emi['productName'] ?? 'Product', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                    Text('Order #${emi['orderId']?.substring(0, 8) ?? 'N/A'}', 
-                        style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
-                  ],
-                ),
-              ),
+              // Coming Soon Icon
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                width: 120,
+                height: 120,
                 decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(20),
+                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
                 ),
-                child: Text(
-                  status.toString().toUpperCase(),
-                  style: const TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.bold),
+                child: Icon(
+                  Iconsax.receipt_2,
+                  size: 60,
+                  color: AppTheme.primaryColor,
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          // Progress
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('$paidInstallments of $totalInstallments paid', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
-                    const SizedBox(height: 4),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: LinearProgressIndicator(
-                        value: totalInstallments > 0 ? paidInstallments / totalInstallments : 0,
-                        backgroundColor: Colors.grey.shade200,
-                        valueColor: const AlwaysStoppedAnimation<Color>(Colors.green),
-                        minHeight: 8,
-                      ),
+              const SizedBox(height: 32),
+              
+              // Title
+              const Text(
+                'EMI Feature Coming Soon!',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              
+              // Description
+              Text(
+                'We\'re working hard to bring you an amazing EMI tracking experience. Stay tuned for updates!',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              
+              // Features coming
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 10,
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(width: 16),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text('₹$monthlyEmi', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                  const Text('/month', style: TextStyle(fontSize: 11, color: Colors.grey)),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          // Actions Row
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () => _showForecloseDialog(emi),
-                  icon: const Icon(Iconsax.money_send, size: 18),
-                  label: const Text('Foreclose'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppTheme.primaryColor,
-                    side: const BorderSide(color: AppTheme.primaryColor),
-                  ),
+                child: Column(
+                  children: [
+                    _buildFeatureRow(Iconsax.chart_2, 'Track all your EMIs in one place'),
+                    const Divider(height: 24),
+                    _buildFeatureRow(Iconsax.calendar_1, 'Get payment reminders'),
+                    const Divider(height: 24),
+                    _buildFeatureRow(Iconsax.money_send, 'Easy foreclose options'),
+                  ],
                 ),
               ),
-              const SizedBox(width: 12),
-              Expanded(
+              const SizedBox(height: 32),
+              
+              // Back Button
+              SizedBox(
+                width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Redirecting to payment...')),
-                    );
-                  },
-                  icon: const Icon(Iconsax.card, size: 18),
-                  label: const Text('Pay EMI'),
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Iconsax.arrow_left),
+                  label: const Text('Go Back'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryColor,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
                 ),
               ),
             ],
           ),
-        ],
-      ),
-    );
-  }
-
-  void _showForecloseDialog(Map<String, dynamic> emi) {
-    final remainingAmount = emi['remainingAmount'] ?? 0;
-    final paidInstallments = emi['paidInstallments'] ?? 0;
-    final totalInstallments = emi['tenure'] ?? 0;
-    final remainingInstallments = totalInstallments - paidInstallments;
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(24),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Header
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.green.shade50,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(Iconsax.money_send, color: Colors.green.shade600),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Foreclose Loan', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                      Text('Pay remaining amount to close', style: TextStyle(color: AppTheme.textSecondary)),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-
-            // Breakdown
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade50,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                children: [
-                  _buildBreakdownRow('Remaining Installments', '$remainingInstallments'),
-                  _buildBreakdownRow('Outstanding Principal', '₹$remainingAmount'),
-                  _buildBreakdownRow('Foreclosure Fee', '₹0 (Waived)'),
-                  const Divider(),
-                  _buildBreakdownRow('Total Payable', '₹$remainingAmount', isBold: true),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Benefits
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.green.shade50,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  Icon(Iconsax.tick_circle, color: Colors.green.shade600, size: 20),
-                  const SizedBox(width: 8),
-                  Text('Credit limit restored immediately', style: TextStyle(color: Colors.green.shade700)),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Actions
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('Cancel'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  flex: 2,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Redirecting to payment...'), backgroundColor: Colors.green),
-                      );
-                    },
-                    child: Text('Pay ₹$remainingAmount'),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-          ],
         ),
       ),
     );
   }
 
-  Widget _buildBreakdownRow(String label, String value, {bool isBold = false}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: TextStyle(color: isBold ? null : AppTheme.textSecondary)),
-          Text(value, style: TextStyle(fontWeight: isBold ? FontWeight.bold : FontWeight.normal)),
-        ],
-      ),
+  Widget _buildFeatureRow(IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(icon, color: AppTheme.primaryColor, size: 22),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            text,
+            style: const TextStyle(fontSize: 14),
+          ),
+        ),
+        Icon(Iconsax.tick_circle, color: Colors.green, size: 18),
+      ],
     );
   }
 }
+
