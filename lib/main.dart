@@ -12,6 +12,8 @@ import 'screens/home/home_screen.dart';
 import 'screens/categories/categories_screen.dart';
 import 'screens/cart/cart_screen.dart';
 import 'screens/wishlist/wishlist_screen.dart';
+import 'screens/orders/my_orders_screen.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 
 void main() {
   runApp(const MyApp());
@@ -70,20 +72,67 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           HomeScreen(),
           _PlaceholderScreen(title: 'Stores', icon: Icons.store),
           CategoriesScreen(),
-          _ComingSoonScreen(title: 'My EMIs', icon: Icons.calendar_month),
+          MyOrdersScreen(),
           WishlistScreen(),
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.store_outlined), activeIcon: Icon(Icons.store), label: 'Stores'),
-          BottomNavigationBarItem(icon: Icon(Icons.grid_view_outlined), activeIcon: Icon(Icons.grid_view), label: 'Categories'),
-          BottomNavigationBarItem(icon: Icon(Icons.calendar_month_outlined), activeIcon: Icon(Icons.calendar_month), label: 'My EMIs'),
-          BottomNavigationBarItem(icon: Icon(Icons.favorite_outline), activeIcon: Icon(Icons.favorite), label: 'Wishlist'),
-        ],
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+             BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 15,
+              offset: const Offset(0, -2),
+            ),
+          ],
+          borderRadius: const BorderRadius.only(
+             topLeft: Radius.circular(20),
+             topRight: Radius.circular(20),
+          ),
+        ),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.only(
+             topLeft: Radius.circular(20),
+             topRight: Radius.circular(20),
+          ),
+          child: NavigationBar(
+            height: 65,
+            selectedIndex: _currentIndex,
+            onDestinationSelected: (index) => setState(() => _currentIndex = index),
+            backgroundColor: Colors.white,
+            elevation: 0,
+            indicatorColor: AppTheme.primaryColor.withOpacity(0.1),
+            labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
+            destinations: const [
+              NavigationDestination(
+                icon: Icon(Iconsax.home, color: Colors.grey), 
+                selectedIcon: Icon(Iconsax.home, color: AppTheme.primaryColor), 
+                label: 'Home'
+              ),
+              NavigationDestination(
+                icon: Icon(Iconsax.shop, color: Colors.grey),
+                selectedIcon: Icon(Iconsax.shop, color: AppTheme.primaryColor),
+                label: 'Stores'
+              ),
+              NavigationDestination(
+                icon: Icon(Iconsax.category, color: Colors.grey),
+                selectedIcon: Icon(Iconsax.category, color: AppTheme.primaryColor),
+                label: 'Categories'
+              ),
+              NavigationDestination(
+                icon: Icon(Iconsax.box, color: Colors.grey),
+                selectedIcon: Icon(Iconsax.box, color: AppTheme.primaryColor),
+                label: 'Orders'
+              ),
+              NavigationDestination(
+                icon: Icon(Iconsax.heart, color: Colors.grey),
+                selectedIcon: Icon(Iconsax.heart, color: AppTheme.primaryColor),
+                label: 'Wishlist'
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -9,6 +9,7 @@ class Product {
   final CategoryRef? category;
   final CategoryRef? subCategory;
   final CategoryRef? brand;
+  final String? gender;
 
   Product({
     required this.id,
@@ -21,6 +22,7 @@ class Product {
     this.category,
     this.subCategory,
     this.brand,
+    this.gender,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
@@ -61,6 +63,7 @@ class Product {
       category: json['proCategoryId'] is Map ? CategoryRef.fromJson(json['proCategoryId']) : (json['category'] is Map ? CategoryRef.fromJson(json['category']) : null),
       subCategory: json['proSubCategoryId'] is Map ? CategoryRef.fromJson(json['proSubCategoryId']) : null,
       brand: json['proBrandId'] is Map ? CategoryRef.fromJson(json['proBrandId']) : null,
+      gender: json['gender'],
     );
   }
 
@@ -76,6 +79,7 @@ class Product {
     'category': category?.toJson(),
     'subCategory': subCategory?.toJson(),
     'brand': brand?.toJson(),
+    'gender': gender,
   };
 
   // Calculate EMI per month (for display like AsBrand)

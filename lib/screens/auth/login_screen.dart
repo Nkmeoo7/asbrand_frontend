@@ -309,7 +309,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) return 'Please enter your email';
-                  if (!value.contains('@')) return 'Please enter a valid email';
+                  final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                  if (!emailRegex.hasMatch(value)) return 'Please enter a valid email address';
                   return null;
                 },
               ),
@@ -328,7 +329,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) return 'Please enter your phone number';
-                  if (!RegExp(r'^[6-9]\d{9}$').hasMatch(value)) return 'Please enter a valid 10-digit phone number';
+                  if (value.length != 10) return 'Phone number must be exactly 10 digits';
+                  if (!RegExp(r'^[0-9]+$').hasMatch(value)) return 'Phone number must contain only digits';
                   return null;
                 },
               ),

@@ -82,6 +82,17 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  // Update Profile (Local & Remote)
+  Future<bool> updateProfile(String name, String phone) async {
+    // In a real app, call API here. For now, update local user.
+    if (_user != null) {
+      _user = _user!.copyWith(name: name, phone: phone);
+      notifyListeners();
+      return true;
+    }
+    return false;
+  }
+
   // Logout
   Future<void> logout() async {
     _token = null;

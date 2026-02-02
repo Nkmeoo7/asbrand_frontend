@@ -6,6 +6,8 @@ import '../../providers/product_provider.dart';
 import '../../providers/category_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
+import '../../providers/wishlist_provider.dart';
+import '../../providers/address_provider.dart';
 import '../../widgets/product_card.dart';
 import '../../widgets/category_chip.dart';
 import '../../widgets/shimmer_loading.dart';
@@ -18,6 +20,8 @@ import '../cart/cart_screen.dart';
 import '../checkout/checkout_screen.dart';
 import '../kyc/kyc_screen.dart';
 import '../credit/credit_dashboard_screen.dart';
+import '../orders/my_orders_screen.dart';
+import '../profile/profile_screen.dart';
 import '../wishlist/wishlist_screen.dart';
 import '../orders/my_orders_screen.dart';
 import '../contact/contact_screen.dart';
@@ -242,35 +246,8 @@ class _HomeScreenState extends State<HomeScreen> {
   void _showAuthOrProfile(BuildContext context) {
     final auth = context.read<AuthProvider>();
     if (auth.isAuthenticated) {
-      // Show profile or credit details
-      showModalBottomSheet(
-        context: context,
-        builder: (_) => Container(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Iconsax.tick_circle, size: 60, color: Colors.green),
-              const SizedBox(height: 16),
-              Text('Welcome, ${auth.user?.name ?? 'User'}!', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              const Text('Your credit limit: ₹50,000', style: TextStyle(color: AppTheme.textSecondary)),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    await auth.logout();
-                    if (context.mounted) Navigator.pop(context);
-                  },
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                  child: const Text('Logout'),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
+      // Show profile screen
+      Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen()));
     } else {
       Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
     }
@@ -590,16 +567,16 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           )),
           const Divider(),
-          if (auth.isAuthenticated) ...[  
-            ListTile(
-              leading: const Icon(Iconsax.card, color: AppTheme.primaryColor),
-              title: const Text('Credit Dashboard'),
-              trailing: const Icon(Iconsax.arrow_right_3),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const CreditDashboardScreen()));
-              },
-            ),
+          ListTile(
+            leading: const Icon(Iconsax.box, color: AppTheme.primaryColor),
+            title: const Text('My Orders'),
+            trailing: const Icon(Iconsax.arrow_right_3),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const MyOrdersScreen()));
+            },
+          ),
+          if (auth.isAuthenticated) ...[
             ListTile(
               leading: const Icon(Iconsax.receipt_2, color: AppTheme.primaryColor),
               title: const Text('My EMIs'),
@@ -634,7 +611,12 @@ class _HomeScreenState extends State<HomeScreen> {
               title: const Text('Logout', style: TextStyle(color: Colors.red)),
               onTap: () async {
                 await auth.logout();
-                if (context.mounted) Navigator.pop(context);
+                if (context.mounted) {
+                  context.read<CartProvider>().clearCart();
+                  context.read<WishlistProvider>().clearWishlist();
+                  context.read<AddressProvider>().clearAddresses();
+                  Navigator.pop(context);
+                }
               },
             ),
         ],

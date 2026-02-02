@@ -7,35 +7,54 @@ import '../../providers/wishlist_provider.dart';
 import '../../models/category.dart';
 import '../../models/product.dart';
 import '../../widgets/product_card.dart';
+import '../../widgets/filter_bottom_sheet.dart';
 import '../product/product_detail_screen.dart';
 
 /// Screen that shows products for a specific category
-class CategoryProductsScreen extends StatelessWidget {
+class CategoryProductsScreen extends StatefulWidget {
   final Category category;
 
   const CategoryProductsScreen({super.key, required this.category});
+
+  @override
+  State<CategoryProductsScreen> createState() => _CategoryProductsScreenState();
+}
+
+class _CategoryProductsScreenState extends State<CategoryProductsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Initialize filter with this category
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ProductProvider>().setFilters(category: widget.category.id);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.scaffoldBackground,
       appBar: AppBar(
-        title: Text(category.name),
+        title: Text(widget.category.name),
         leading: IconButton(
           icon: const Icon(Iconsax.arrow_left),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
           IconButton(
+            icon: const Icon(Iconsax.search_normal),
+            onPressed: () {
+               // TODO: Navigate to Search
+            },
+          ),
+          IconButton(
             icon: const Icon(Iconsax.filter),
             onPressed: () {
-              // TODO: Add filter functionality
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Filter coming soon'),
-                  duration: Duration(seconds: 2),
-                  behavior: SnackBarBehavior.floating,
-                ),
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (context) => FilterBottomSheet(),
               );
             },
           ),
@@ -43,7 +62,11 @@ class CategoryProductsScreen extends StatelessWidget {
       ),
       body: Consumer<ProductProvider>(
         builder: (context, productProvider, _) {
-          final products = productProvider.getProductsByCategory(category.id);
+          // Using the filtered products from provider directly
+          // We rely on setFilters called in initState to have fetched the right data
+          final products = productProvider.products;
+          // Filter locally just in case provider has other data, OR trust provider reset
+          // Actually, setFilters fetches fresh data. So products list IS the category products.
           
           if (productProvider.isLoading) {
             return const Center(child: CircularProgressIndicator());
@@ -57,7 +80,7 @@ class CategoryProductsScreen extends StatelessWidget {
                   Icon(Iconsax.box, size: 80, color: Colors.grey[300]),
                   const SizedBox(height: 16),
                   Text(
-                    'No products in ${category.name}',
+                    'No products in ${widget.category.name}',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -86,26 +109,41 @@ class CategoryProductsScreen extends StatelessWidget {
 
           return Column(
             children: [
-              // Results count
+              // Results count and Sort Bar
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                color: Colors.white,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                     BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 5, offset: const Offset(0, 2)),
+                  ],
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       '${products.length} product${products.length > 1 ? 's' : ''} found',
-                      style: const TextStyle(fontWeight: FontWeight.w500),
+                      style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
                     ),
-                    Row(
-                      children: [
-                        Icon(Iconsax.sort, size: 18, color: AppTheme.primaryColor),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Sort',
-                          style: TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.w500),
-                        ),
-                      ],
+                    GestureDetector(
+                      onTap: () {
+                         showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (context) => FilterBottomSheet(),
+                        );
+                      },
+                      child: Row(
+                        children: [
+                          Icon(Iconsax.sort, size: 20, color: AppTheme.primaryColor),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Sort',
+                            style: TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.w600),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),

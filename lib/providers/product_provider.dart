@@ -20,6 +20,9 @@ class ProductProvider extends ChangeNotifier {
   String? _sort; // price_asc, price_desc, newest
   String? _categoryId;
   String? _searchKeyword;
+  String? _gender;
+  List<String> _selectedBrands = [];
+  int? _minDiscount;
 
   // Getters for filter state
   double? get minPrice => _minPrice;
@@ -27,12 +30,26 @@ class ProductProvider extends ChangeNotifier {
   String? get sort => _sort;
   String? get categoryId => _categoryId;
   String? get searchKeyword => _searchKeyword;
+  String? get gender => _gender;
+  List<String> get selectedBrands => _selectedBrands;
+  int? get minDiscount => _minDiscount;
 
-  void setFilters({double? min, double? max, String? sortOrder, String? category}) {
+  void setFilters({
+    double? min, 
+    double? max, 
+    String? sortOrder, 
+    String? category,
+    String? gender,
+    List<String>? brands,
+    int? discount,
+  }) {
     _minPrice = min;
     _maxPrice = max;
     if (sortOrder != null) _sort = sortOrder;
     if (category != null) _categoryId = category;
+    if (gender != null) _gender = gender;
+    if (brands != null) _selectedBrands = brands;
+    if (discount != null) _minDiscount = discount;
     fetchProducts();
   }
 
@@ -47,6 +64,9 @@ class ProductProvider extends ChangeNotifier {
     _sort = null;
     _categoryId = null;
     _searchKeyword = null;
+    _gender = null;
+    _selectedBrands = [];
+    _minDiscount = null;
     fetchProducts();
   }
 
@@ -63,6 +83,9 @@ class ProductProvider extends ChangeNotifier {
       if (_sort != null) params['sort'] = _sort;
       if (_categoryId != null) params['category'] = _categoryId;
       if (_searchKeyword != null && _searchKeyword!.isNotEmpty) params['keyword'] = _searchKeyword;
+      if (_gender != null) params['gender'] = _gender;
+      if (_selectedBrands.isNotEmpty) params['brand'] = _selectedBrands.join(',');
+      if (_minDiscount != null) params['minDiscount'] = _minDiscount.toString();
 
       _products = await _apiService.getProducts(params: params);
     } catch (e) {
