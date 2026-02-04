@@ -24,6 +24,7 @@ class ProductDetailScreen extends StatefulWidget {
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
   int selectedImageIndex = 0;
   int selectedEmiMonths = 3;
+  String? selectedVariant;
 
   void _shareProduct() {
     final product = widget.product;
@@ -137,7 +138,70 @@ Download AsBrand app to shop with easy EMI options!
                       ],
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 10),
+                  
+                  // Stock Status Badge
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: product.isInStock 
+                            ? (product.isLowStock ? Colors.orange.withOpacity(0.1) : Colors.green.withOpacity(0.1))
+                            : Colors.red.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(
+                            color: product.isInStock 
+                              ? (product.isLowStock ? Colors.orange : Colors.green)
+                              : Colors.red,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              product.isInStock ? Iconsax.tick_circle : Iconsax.close_circle,
+                              size: 14,
+                              color: product.isInStock 
+                                ? (product.isLowStock ? Colors.orange : Colors.green)
+                                : Colors.red,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              product.stockLabel,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: product.isInStock 
+                                  ? (product.isLowStock ? Colors.orange : Colors.green)
+                                  : Colors.red,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (product.emiEligible) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.purple.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(color: Colors.purple),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Iconsax.card, size: 14, color: Colors.purple),
+                              SizedBox(width: 4),
+                              Text('EMI Available', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.purple)),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 12),
                   
                   // EMI Options - Hidden for now, will be enabled in future
                   // TODO: Enable EMI section when feature is ready
@@ -163,6 +227,23 @@ Download AsBrand app to shop with easy EMI options!
                   ],
                 ),
               ),
+            
+            const SizedBox(height: 8),
+
+            // Variant Selector (Sizes/Colors)
+            if (product.variants.isNotEmpty)
+              _buildVariantSelector(product),
+
+            // Specifications Table
+            if (product.specifications.isNotEmpty)
+              _buildSpecificationsSection(product),
+
+            // Product Info (SKU, Warranty, Weight)
+            _buildProductInfoSection(product),
+
+            // Tags
+            if (product.tags.isNotEmpty)
+              _buildTagsSection(product),
             
             // Frequently Bought Together Section
             SimilarProductsSection(
@@ -294,6 +375,218 @@ Download AsBrand app to shop with easy EMI options!
                       ],
                     ),
                   ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Variant Selector (Sizes/Colors for clothes)
+  Widget _buildVariantSelector(Product product) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      color: Colors.white,
+      width: double.infinity,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                product.variantType ?? 'Select Option',
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              if (selectedVariant != null) ...[
+                const SizedBox(width: 8),
+                Text(': $selectedVariant', style: const TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.w500)),
+              ],
+            ],
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: product.variants.map((variant) {
+              final isSelected = selectedVariant == variant;
+              return GestureDetector(
+                onTap: () => setState(() => selectedVariant = variant),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: isSelected ? AppTheme.primaryColor : Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: isSelected ? AppTheme.primaryColor : Colors.grey.shade300,
+                      width: isSelected ? 2 : 1,
+                    ),
+                  ),
+                  child: Text(
+                    variant,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                      color: isSelected ? Colors.white : Colors.black87,
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Specifications Table (Material, Fabric, Care Instructions)
+  Widget _buildSpecificationsSection(Product product) {
+    return Container(
+      margin: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.all(16),
+      color: Colors.white,
+      width: double.infinity,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Specifications', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 12),
+          ...product.specifications.asMap().entries.map((entry) {
+            final isEven = entry.key.isEven;
+            return Container(
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+              decoration: BoxDecoration(
+                color: isEven ? Colors.grey.shade50 : Colors.white,
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: 120,
+                    child: Text(
+                      entry.value.key,
+                      style: const TextStyle(color: AppTheme.textSecondary, fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(entry.value.value, style: const TextStyle(fontWeight: FontWeight.w500)),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  // Product Info (SKU, Warranty, Weight, Stock Status)
+  Widget _buildProductInfoSection(Product product) {
+    return Container(
+      margin: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.all(16),
+      color: Colors.white,
+      width: double.infinity,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Product Details', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 12),
+          
+          // Stock Status
+          _buildInfoRow(
+            icon: product.isInStock ? Iconsax.tick_circle : Iconsax.close_circle,
+            iconColor: product.isInStock ? Colors.green : Colors.red,
+            label: 'Availability',
+            value: product.stockLabel,
+            valueColor: product.isLowStock ? Colors.orange : (product.isInStock ? Colors.green : Colors.red),
+          ),
+          
+          // SKU
+          if (product.sku != null && product.sku!.isNotEmpty)
+            _buildInfoRow(icon: Iconsax.barcode, label: 'SKU', value: product.sku!),
+          
+          // Gender
+          if (product.gender != null)
+            _buildInfoRow(icon: Iconsax.user, label: 'Gender', value: product.gender!),
+          
+          // Warranty
+          if (product.warranty != null && product.warranty!.isNotEmpty)
+            _buildInfoRow(icon: Iconsax.shield_tick, label: 'Warranty', value: product.warranty!),
+          
+          // Weight
+          if (product.weight != null && product.weight! > 0)
+            _buildInfoRow(icon: Iconsax.weight, label: 'Weight', value: '${product.weight!.round()} grams'),
+          
+          // EMI Eligible
+          if (product.emiEligible)
+            _buildInfoRow(
+              icon: Iconsax.card,
+              iconColor: Colors.purple,
+              label: 'EMI',
+              value: 'Available • No Cost EMI',
+              valueColor: Colors.purple,
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow({
+    required IconData icon,
+    required String label,
+    required String value,
+    Color? iconColor,
+    Color? valueColor,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: iconColor ?? AppTheme.textSecondary),
+          const SizedBox(width: 10),
+          SizedBox(
+            width: 100,
+            child: Text(label, style: TextStyle(color: AppTheme.textSecondary)),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(fontWeight: FontWeight.w500, color: valueColor ?? Colors.black87),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Tags Display
+  Widget _buildTagsSection(Product product) {
+    return Container(
+      margin: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.all(16),
+      color: Colors.white,
+      width: double.infinity,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Tags', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: product.tags.map((tag) {
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppTheme.primaryColor.withOpacity(0.3)),
+                ),
+                child: Text(
+                  '#$tag',
+                  style: TextStyle(color: AppTheme.primaryColor, fontSize: 12, fontWeight: FontWeight.w500),
                 ),
               );
             }).toList(),

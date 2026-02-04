@@ -5,7 +5,7 @@ class ApiConstants {
   // If you are using the Android Emulator, use 'http://10.0.2.2:3000'
   // If you are using the iOS Simulator, use 'http://localhost:3000'
   // If you are using a physical device, use your PC's LAN IP (e.g., 'http://192.168.1.5:3000')
-  static const String baseUrl = 'http://localhost:3000'; 
+  static const String baseUrl = 'http://10.12.91.167:3000'; // LAN IP for physical device 
 
   // ---------------------------------------------------------------------------
   // AUTH ENDPOINTS
