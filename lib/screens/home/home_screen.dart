@@ -291,7 +291,7 @@ class _HomeScreenState extends State<HomeScreen> {
         onSubmitted: (value) => context.read<ProductProvider>().setSearch(value),
         style: const TextStyle(fontSize: 15),
         decoration: InputDecoration(
-          hintText: 'Search for products, brands & more...',
+          hintText: 'Search for shirts, dresses, jeans & more...',
           hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
           prefixIcon: Icon(Iconsax.search_normal_1, color: AppTheme.primaryColor, size: 22),
           suffixIcon: Row(
@@ -335,16 +335,28 @@ class _HomeScreenState extends State<HomeScreen> {
     // Map category names to icons
     IconData getCategoryIcon(String name) {
       final lower = name.toLowerCase();
-      if (lower.contains('mobile') || lower.contains('phone')) return Iconsax.mobile;
-      if (lower.contains('electronic')) return Iconsax.cpu;
-      if (lower.contains('tv') || lower.contains('appliance')) return Iconsax.monitor;
-      if (lower.contains('kitchen') || lower.contains('home')) return Iconsax.home;
-      if (lower.contains('health') || lower.contains('wellness')) return Iconsax.health;
+      // Women's clothing
+      if (lower.contains('women') || lower.contains('ladies')) return Iconsax.woman;
+      if (lower.contains('dress') || lower.contains('gown')) return Iconsax.lovely;
+      if (lower.contains('kurta') || lower.contains('kurti') || lower.contains('ethnic')) return Iconsax.gift;
+      if (lower.contains('saree') || lower.contains('lehenga')) return Iconsax.star;
+      // Men's clothing
+      if (lower.contains('men') || lower.contains('gents')) return Iconsax.man;
+      if (lower.contains('shirt') || lower.contains('top') || lower.contains('tee')) return Iconsax.box;
+      if (lower.contains('suit') || lower.contains('blazer') || lower.contains('formal')) return Iconsax.briefcase;
+      // Common clothing
+      if (lower.contains('jeans') || lower.contains('pants') || lower.contains('bottom')) return Iconsax.tag;
       if (lower.contains('fashion') || lower.contains('cloth')) return Iconsax.bag_2;
-      if (lower.contains('baby') || lower.contains('kid')) return Iconsax.happyemoji;
-      if (lower.contains('laptop') || lower.contains('computer')) return Iconsax.monitor;
+      if (lower.contains('winter') || lower.contains('jacket') || lower.contains('sweater')) return Iconsax.cloud_snow;
+      // Kids
+      if (lower.contains('baby') || lower.contains('kid') || lower.contains('child')) return Iconsax.happyemoji;
+      // Footwear & Accessories
+      if (lower.contains('shoe') || lower.contains('footwear') || lower.contains('sneaker')) return Iconsax.activity;
       if (lower.contains('watch')) return Iconsax.watch;
-      if (lower.contains('headphone') || lower.contains('audio')) return Iconsax.headphone;
+      if (lower.contains('bag') || lower.contains('handbag') || lower.contains('purse')) return Iconsax.shopping_bag;
+      if (lower.contains('accessori') || lower.contains('jewel')) return Iconsax.diamonds;
+      // Sports
+      if (lower.contains('sport') || lower.contains('active') || lower.contains('gym')) return Iconsax.weight;
       return Iconsax.category;
     }
 
@@ -386,10 +398,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildSaleBannersSection() {
     final banners = [
-      {'title': 'FLASH SALE', 'subtitle': 'Up to 50% Off', 'discount': '50%', 'gradient': [const Color(0xFF006D77), const Color(0xFF004D55)], 'tag': 'Limited Time'},
-      {'title': 'ELECTRONICS', 'subtitle': 'Starting ₹999', 'discount': '40%', 'gradient': [const Color(0xFFFF6B6B), const Color(0xFFFF8E53)], 'tag': 'Hot Deals'},
+      {'title': 'END OF SEASON', 'subtitle': 'Up to 70% Off', 'discount': '70%', 'gradient': [const Color(0xFF006D77), const Color(0xFF004D55)], 'tag': 'Limited Time'},
+      {'title': 'NEW ARRIVALS', 'subtitle': 'Latest Collection', 'discount': 'NEW', 'gradient': [const Color(0xFFFF6B6B), const Color(0xFFFF8E53)], 'tag': 'Just In'},
       {'title': 'FASHION WEEK', 'subtitle': 'Buy 2 Get 1 Free', 'discount': '60%', 'gradient': [const Color(0xFF667EEA), const Color(0xFF764BA2)], 'tag': 'Trending'},
-      {'title': 'HOME SALE', 'subtitle': 'Flat ₹500 Off', 'discount': '30%', 'gradient': [const Color(0xFF11998E), const Color(0xFF38EF7D)], 'tag': 'Best Deals'},
+      {'title': 'WINTER WEAR', 'subtitle': 'Flat 40% Off', 'discount': '40%', 'gradient': [const Color(0xFF11998E), const Color(0xFF38EF7D)], 'tag': 'Cozy Deals'},
     ];
 
     return Column(

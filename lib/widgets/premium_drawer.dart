@@ -20,13 +20,28 @@ class PremiumDrawer extends StatelessWidget {
 
   IconData _getCategoryIcon(String name) {
     final lower = name.toLowerCase();
-    if (lower.contains('mobile') || lower.contains('phone') || lower.contains('smartphone')) return Iconsax.mobile;
-    if (lower.contains('laptop') || lower.contains('computer')) return Iconsax.monitor;
-    if (lower.contains('tv') || lower.contains('display')) return Iconsax.monitor_mobbile;
-    if (lower.contains('home') || lower.contains('appliance')) return Iconsax.home_1;
-    if (lower.contains('audio') || lower.contains('headphone')) return Iconsax.headphone;
-    if (lower.contains('wearable') || lower.contains('watch')) return Iconsax.watch;
+    // Women's clothing
+    if (lower.contains('women') || lower.contains('ladies')) return Iconsax.woman;
+    if (lower.contains('dress') || lower.contains('gown')) return Iconsax.lovely;
+    if (lower.contains('kurta') || lower.contains('kurti') || lower.contains('ethnic')) return Iconsax.gift;
+    if (lower.contains('saree') || lower.contains('lehenga')) return Iconsax.star;
+    // Men's clothing
+    if (lower.contains('men') || lower.contains('gents')) return Iconsax.man;
+    if (lower.contains('shirt') || lower.contains('top') || lower.contains('tee')) return Iconsax.box;
+    if (lower.contains('suit') || lower.contains('blazer') || lower.contains('formal')) return Iconsax.briefcase;
+    // Common clothing
+    if (lower.contains('jeans') || lower.contains('pants') || lower.contains('bottom')) return Iconsax.tag;
     if (lower.contains('fashion') || lower.contains('cloth')) return Iconsax.bag_2;
+    if (lower.contains('winter') || lower.contains('jacket') || lower.contains('sweater')) return Iconsax.cloud_snow;
+    // Kids
+    if (lower.contains('baby') || lower.contains('kid') || lower.contains('child')) return Iconsax.happyemoji;
+    // Footwear & Accessories
+    if (lower.contains('shoe') || lower.contains('footwear') || lower.contains('sneaker')) return Iconsax.activity;
+    if (lower.contains('watch')) return Iconsax.watch;
+    if (lower.contains('bag') || lower.contains('handbag') || lower.contains('purse')) return Iconsax.shopping_bag;
+    if (lower.contains('accessori') || lower.contains('jewel')) return Iconsax.diamonds;
+    // Sports
+    if (lower.contains('sport') || lower.contains('active') || lower.contains('gym')) return Iconsax.weight;
     return Iconsax.category;
   }
 

@@ -21,15 +21,29 @@ class CategoryProvider extends ChangeNotifier {
   String? _error;
   String? get error => _error;
 
-  // Fetch all categories
+  // Fetch all categories - filtered to clothing only
   Future<void> fetchCategories() async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      _categories = await _apiService.getCategories();
+      final allCategories = await _apiService.getCategories();
+      
+      // Filter to only show clothing-related categories
+      final clothingCategories = allCategories
+          .where((cat) => Category.isClothingCategory(cat.name))
+          .toList();
+      
+      // If no clothing categories found in backend, use defaults
+      if (clothingCategories.isEmpty) {
+        _categories = Category.getDefaultClothingCategories();
+      } else {
+        _categories = clothingCategories;
+      }
     } catch (e) {
+      // On error, use default clothing categories
+      _categories = Category.getDefaultClothingCategories();
       _error = e.toString();
     }
 
