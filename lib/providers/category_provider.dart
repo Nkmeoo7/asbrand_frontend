@@ -21,7 +21,7 @@ class CategoryProvider extends ChangeNotifier {
   String? _error;
   String? get error => _error;
 
-  // Fetch all categories - filtered to clothing only
+  // Fetch all categories - uses clothing categories + any clothing-related backend categories
   Future<void> fetchCategories() async {
     _isLoading = true;
     _error = null;
@@ -30,17 +30,18 @@ class CategoryProvider extends ChangeNotifier {
     try {
       final allCategories = await _apiService.getCategories();
       
-      // Filter to only show clothing-related categories
-      final clothingCategories = allCategories
+      // Start with default clothing categories
+      final clothingDefaults = Category.getDefaultClothingCategories();
+      
+      // Add any clothing-related categories from backend that aren't duplicates
+      final backendClothingCategories = allCategories
           .where((cat) => Category.isClothingCategory(cat.name))
+          .where((cat) => !clothingDefaults.any((def) => 
+              def.name.toLowerCase() == cat.name.toLowerCase()))
           .toList();
       
-      // If no clothing categories found in backend, use defaults
-      if (clothingCategories.isEmpty) {
-        _categories = Category.getDefaultClothingCategories();
-      } else {
-        _categories = clothingCategories;
-      }
+      // Combine: defaults first, then any additional backend clothing categories
+      _categories = [...clothingDefaults, ...backendClothingCategories];
     } catch (e) {
       // On error, use default clothing categories
       _categories = Category.getDefaultClothingCategories();
